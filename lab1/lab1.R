@@ -24,7 +24,7 @@ oneNN <- function(xl, z) #1NN
 
 xl <- iris[, 3:5]
 colors = c("setosa" = "red", "versicolor" = "green3", "virginica" = "blue")
-plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main=" Классификаци¤ ирисов Фишера методом 1NN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
+plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main=" Классификация ирисов Фишера методом 1NN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
 
 
 for (i in seq(0, 7, 0.1)) {
