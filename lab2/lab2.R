@@ -23,29 +23,14 @@ kNN <- function(xl, z, k) {
 }
 
 lOO <- function(k, xl) { # Метод скользящего контроля для выбора оптимального k
-  #Первую и последнюю итерацию проведём вне цикла, чтобы метод не сыпался на крайних k
-  tmpXl <- xl[i+1:dim(xl)[1], ] # Удаляем объект из выборки
-  xi <- c(xl[1, 1], xl[1, 2]) 
-  class <- kNN(tmpXl, xi, k) # Классифицируем его методом kNN
-  if (class == xl[1, 3]) # Класс совпал с реальным
-    sum = 0
-  else # Классы не совпали
-    sum = 1
-  
-  for (i in 1:(dim(xl)[1] - 1)) { 
+  sum = 0
+  for (i in 1:dim(xl)[1]) { 
     tmpXl <- rbind(xl[1:i-1, ], xl[i+1:dim(xl)[1],])
     xi <- c(xl[i, 1], xl[i, 2])
     class <- kNN(tmpXl, xi, k)
     if (class != xl[i, 3])
       sum = sum + 1
   }
-  
-  tmpXl <- xl[1:(dim(xl)[1] - 1), ]
-  xi <- c(xl[dim(xl)[1], 1], xl[dim(xl)[1], 2])
-  class <- kNN(tmpXl, xi, k)
-  if (class != xl[dim(xl)[1], 3])
-    sum = sum + 1
-  
   sum = sum / dim(xl)[1] # Усреднение полученной ошибки
   return (sum)
 }
@@ -56,7 +41,6 @@ colors = c("setosa" = "red", "versicolor" = "green3", "virginica" = "blue")
 plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main="Классификация ирисов Фишера методом kNN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
 
 minErr = 99999
-curErr = 0
 k = 1
 for (i in 1:10) { # Выбор оптимального k среди последовательности от 1 до 10
   curErr <- lOO(i, xl)
