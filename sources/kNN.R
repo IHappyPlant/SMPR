@@ -45,7 +45,7 @@ lOOForK <- matrix(NA, 1, 2)
 lOOForK[1, ] <- c(k, lOO(1, xl))
 tmp <- matrix(NA, 1, 2)
 
-for (i in 2:150) { # Выбор по LOO оптимального k среди последовательности от 2 до 60
+for (i in 2:150) { # Выбор по LOO оптимального k среди последовательности от 2 до 150
   curErr <- lOO(i, xl)
   tmp[1, ] <- c(i, curErr)
   lOOForK <- rbind(lOOForK, tmp)
