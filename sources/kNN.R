@@ -58,6 +58,7 @@ for (i in 2:150) { # Выбор по LOO оптимального k среди �
 colors = c("setosa" = "red", "versicolor" = "green3", "virginica" = "blue")
 plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main="Классификация ирисов Фишера методом kNN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
 
+# Карта классификации
 for (i in seq(0, 7, 0.1)) {
   for (j in seq(0, 2.5, 0.1)) {
     z <- c(i, j)
@@ -66,7 +67,9 @@ for (i in seq(0, 7, 0.1)) {
   }
 }
 
-plot(lOOForK, pch = 21, bg = "red", col = "red", main = "Оценка оптимальности различных k по LOO", xlab = "Значения k", ylab = "Значения LOO")
-label = paste("k = ", k, "\n", "LOO = ", round(minErr, 4))
+# График LOO
+plot(lOOForK, type = "l", bg = "red", col = "red", main = "Оценка оптимальности различных k по LOO", xlab = "Значения k", ylab = "Значения LOO")
+points(k, minErr, pch = 21, bg = "blue", col = "blue")
+label = paste("k = ", k, "\n", "LOO = ", round(minErr, 3))
 text(k, minErr, labels = label, pos = 3)
 lines(lOOForK, col = "red")
