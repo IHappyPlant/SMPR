@@ -1,4 +1,4 @@
-dist = function(u, v) { # Р•РІРєР»РёРґРѕРІР° РјРµС‚СЂРёРєР°
+dist = function(u, v) { # Евклидова метрика
   sqrt(sum((u - v)^2))
 }
 
@@ -15,26 +15,26 @@ sortObj <- function(xl, z, metricFunction = dist) {
 kwNN <- function(xl, z, k, q) {
   orderedXL <- sortObj(xl, z);
   n <- dim(orderedXL)[2]
-  classes <- orderedXL[1:k, n]  # Р‘РµСЂС‘Рј k Р±Р»РёР¶Р°Р№С€РёС… СЃРѕСЃРµРґРµР№
-  classes <- table(classes) # Р”РµР»Р°РµРј РґР»СЏ РЅРёС… С‚Р°Р±Р»РёС†Сѓ
-  classes[1:length(classes)] <- 0 # РћР±РЅСѓР»СЏРµРј РІСЃРµ Р·РЅР°С‡РµРЅРёСЏ РІ С‚Р°Р±Р»РёС†Рµ
-  for (i in names(classes)) { # Р”Р»СЏ РєР°Р¶РґРѕРіРѕ РєР»Р°СЃСЃР°
-    for (j in 1:k) { # РџСЂРѕС…РѕРґРёРј РїРѕ РІСЃРµР№ С‚Р°Р±Р»РёС†Рµ
-      if (orderedXL[j, n] == i) # Р СЃСѓРјРјРёСЂСѓРµРј РІРµСЃР° РІСЃРµС… РѕР±СЉРµРєС‚РѕРІ РѕРґРёРЅР°РєРѕРІС‹С… РєР»Р°СЃСЃРѕРІ
+  classes <- orderedXL[1:k, n]  # Берём k ближайших соседей
+  classes <- table(classes) # Делаем для них таблицу
+  classes[1:length(classes)] <- 0 # Обнуляем все значения в таблице
+  for (i in names(classes)) { # Для каждого класса
+    for (j in 1:k) { # Проходим по всей таблице
+      if (orderedXL[j, n] == i) # И суммируем веса всех объектов одинаковых классов
         classes[i] = classes[i] + (k - j + 1) / (q*q)
     }
   }
-  class <- names(which.max(classes)) # Р’РµСЂРЅС‘Рј СЃР°РјС‹Р№ Р±РѕР»СЊС€РѕР№ РІРµСЃ
+  class <- names(which.max(classes)) # Вернём самый большой вес
   return (class)
 }
 
 lOO <- function(k, q, xl) {
   sum = 0
   for (i in 1:dim(xl)[1]) { 
-    tmpXl <- rbind(xl[1:i-1, ], xl[i+1:dim(xl)[1],]) # Р’СЂРµРјРµРЅРЅР°СЏ РІС‹Р±РѕСЂРєР°, СЃ СѓРґР°Р»С‘РЅРЅС‹Рј i-Рј РѕР±СЉРµРєС‚РѕРј
-    xi <- c(xl[i, 1], xl[i, 2]) # i-Р№ РѕР±СЉРµРєС‚, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ Р±СѓРґРµРј Р·Р°РїСѓСЃРєР°С‚СЊ LOO
+    tmpXl <- rbind(xl[1:i-1, ], xl[i+1:dim(xl)[1],]) # Временная выборка, с удалённым i-м объектом
+    xi <- c(xl[i, 1], xl[i, 2]) # i-й объект, для которого будем запускать LOO
     class <- kwNN(tmpXl, xi, k, q)
-    if (class != xl[i, 3]) # Р•СЃР»Рё РєР»Р°СЃСЃС‹ РЅРµ СЃРѕРІРїР°Р»Рё, СѓРІРµР»РёС‡РёРј СЃСѓРјРјСѓ РѕС€РёР±РєРё
+    if (class != xl[i, 3]) # Если классы не совпали, увеличим сумму ошибки
       sum = sum + 1
   }
   sum = sum / dim(xl)[1]  # sum / l
@@ -46,17 +46,17 @@ xl <- iris[, 3:5]
 
 k <- 1
 q <- 1
-lOOForK <- matrix(NA, 1, 2) # Р”Р»СЏ РіСЂР°С„РёРєР° Р·Р°РІРёСЃРёРјРѕСЃС‚Рё LOO РѕС‚ k
+lOOForK <- matrix(NA, 1, 2) # Для графика зависимости LOO от k
 lOOForK[1, ] <- c(k, lOO(k, q, xl))
 tmp <- matrix(NA, 1, 2)
 minErr <- 999999999
 
-for (i in 2:150) { # РџРѕРґР±РѕСЂ РїРѕ LOO РѕРїС‚РёРјР°Р»СЊРЅС‹С… k СЃСЂРµРґРё С‡РёСЃРµР» РѕС‚ 2 РґРѕ 150
-  for (j in 1:10) { # Рё q СЃСЂРµРґРё С‡РёСЃРµР» РѕС‚ 1 РґРѕ 10
-    curErr <- lOO(i, j, xl) # Р—РЅР°С‡РµРЅРёРµ LOO РЅР° С‚РµРєСѓС‰РµР№ РёС‚РµСЂР°С†РёРё
+for (i in 2:150) { # Подбор по LOO оптимальных k среди чисел от 2 до 150
+  for (j in 1:10) { # и q среди чисел от 1 до 10
+    curErr <- lOO(i, j, xl) # Значение LOO на текущей итерации
     tmp[1, ] <- c(i, curErr) 
     lOOForK <- rbind(lOOForK, tmp)
-    if (curErr < minErr) { # Р•СЃР»Рё С‚РµРєСѓС‰РµРµ Р·РЅР°С‡РµРЅРёРµ LOO РјРµРЅСЊС€Рµ РјРёРЅРёРјР°Р»СЊРЅРѕРіРѕ РІСЃС‚СЂРµС‡РµРЅРЅРѕРіРѕ
+    if (curErr < minErr) { # Если текущее значение LOO меньше минимального встреченного
       minErr <- curErr
       k <- i
       q <- j
@@ -65,7 +65,7 @@ for (i in 2:150) { # РџРѕРґР±РѕСЂ РїРѕ LOO РѕРїС‚РёРјР°Р»СЊРЅС‹С… k СЃСЂРµРґРё С
 }
 
 colors = c("setosa" = "red", "versicolor" = "green3", "virginica" = "blue")
-plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main="РљР»Р°СЃСЃРёС„РёРєР°С†РёСЏ РёСЂРёСЃРѕРІ Р¤РёС€РµСЂР° РјРµС‚РѕРґРѕРј kwNN", xlab = "Р”Р»РёРЅР° Р»РµРїРµСЃС‚РєР°", ylab = "РЁРёСЂРёРЅР° Р»РµРїРµСЃС‚РєР°", asp = 1)
+plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main="Классификация ирисов Фишера методом kwNN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
 
 for (i in seq(0, 7, 0.1)) {
   for (j in seq(0, 2.5, 0.1)) {
@@ -75,7 +75,8 @@ for (i in seq(0, 7, 0.1)) {
   }
 }
 
-# Р“СЂР°С„РёРє LOO
-plot(lOOForK, type = "l", bg = "red", col = "red", main = "РћС†РµРЅРєР° РѕРїС‚РёРјР°Р»СЊРЅРѕСЃС‚Рё СЂР°Р·Р»РёС‡РЅС‹С… k РїРѕ LOO", xlab = "Р—РЅР°С‡РµРЅРёСЏ k", ylab = "Р—РЅР°С‡РµРЅРёСЏ LOO")
+# График LOO
+plot(lOOForK, type = "l", bg = "red", col = "red", main = "Оценка оптимальности различных k по LOO", xlab = "Значения k", ylab = "Значения LOO")
 label = paste("k = ", k, "\n", "LOO = ", round(minErr,3))
 text(k, minErr, labels = label, pos = 3)
+points(k, minErr, pch = 21, bg = "blue", col = "blue")
