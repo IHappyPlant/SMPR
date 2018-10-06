@@ -31,7 +31,7 @@
 	}
 где *orderedXL* - отсортированная обучающая выборка.
 
-![LOO_kNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/LOO_kNN.png) ![kNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kNN.png) 
+![LOO_kNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kNN_plot.png)
 
 Достоинства алгоритма:
 1. Простота реализации
