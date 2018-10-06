@@ -22,7 +22,6 @@
 Алгоритм:
 
     kNN <- function(xl, z, k) {
-	  orderedXL <- sortObj(xl, z);
 	  n <- dim(orderedXL)[2]
 	  classes <- orderedXL[1:k, n] 
 	  counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
