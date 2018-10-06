@@ -22,13 +22,13 @@
 Алгоритм:
 
     kNN <- function(xl, z, k) {
-	  n <- dim(orderedXL)[2]
-	  classes <- orderedXL[1:k, n] 
+	  n <- dim(xl)[2]
+	  classes <- xl[1:k, n] 
 	  counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
 	  class <- names(which.max(counts)) # Наиболее часто встречаемый класс
 	  return (class)
 	}
-где *orderedXL* - отсортированная обучающая выборка.
+где *xl* - отсортированная обучающая выборка.
 
 ![LOO_kNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kNN_plot.png)
 
