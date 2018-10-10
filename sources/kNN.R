@@ -34,7 +34,7 @@ lOO <- function(xl) { # Метод скользящего контроля дл�
         lOOForK[k] <- lOOForK[k] + 1 / l
     }
   }
-  return (lOOForK) # Матрица зависимости LOO от k
+  return (lOOForK) # Вектор зависимости LOO от k
 }
 
 getOptimalK <- function(xl, lOOForK) {
