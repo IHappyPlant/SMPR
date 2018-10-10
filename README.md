@@ -21,7 +21,7 @@
 
 Алгоритм:
 
-    kNN <- function(xl, z, k) {
+    kNN <- function(xl, k) {
 	  n <- dim(xl)[2]
 	  classes <- xl[1:k, n] 
 	  counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
