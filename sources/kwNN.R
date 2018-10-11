@@ -1,4 +1,4 @@
-dist = function(u, v) { # Р•РІРєР»РёРґРѕРІР° РјРµС‚СЂРёРєР°
+dist = function(u, v) { # Евклидова метрика
   sqrt(sum((u - v)^2))
 }
 
@@ -12,112 +12,71 @@ sortObj <- function(xl, z, metricFunction = dist) {
   return (orderedXL)
 }
 
-kwNN <- function(xl, k, q) {
-  n <- dim(xl)[2]
-  classes <- xl[1:k, n]  # Р‘РµСЂС‘Рј k Р±Р»РёР¶Р°Р№С€РёС… СЃРѕСЃРµРґРµР№
-  classes <- table(classes) # Р”РµР»Р°РµРј РґР»СЏ РЅРёС… С‚Р°Р±Р»РёС†Сѓ
-  classes[1:length(classes)] <- 0 # РћР±РЅСѓР»СЏРµРј РІСЃРµ Р·РЅР°С‡РµРЅРёСЏ РІ С‚Р°Р±Р»РёС†Рµ
-  for (i in names(classes)) { # Р”Р»СЏ РєР°Р¶РґРѕРіРѕ РєР»Р°СЃСЃР°
-    for (j in 1:k) { # РџСЂРѕС…РѕРґРёРј РїРѕ РІСЃРµР№ С‚Р°Р±Р»РёС†Рµ
-      if (xl[j, n] == i) # Р СЃСѓРјРјРёСЂСѓРµРј РІРµСЃР° РІСЃРµС… РѕР±СЉРµРєС‚РѕРІ РѕРґРёРЅР°РєРѕРІС‹С… РєР»Р°СЃСЃРѕРІ
-        classes[i] = classes[i] + (k - j + 1) * (q * q)
+kwNN <- function(xl, z, k, q) {
+  orderedXL <- sortObj(xl, z);
+  n <- dim(orderedXL)[2]
+  classes <- orderedXL[1:k, n]  # Берём k ближайших соседей
+  classes <- table(classes) # Делаем для них таблицу
+  classes[1:length(classes)] <- 0 # Обнуляем все значения в таблице
+  for (i in names(classes)) { # Для каждого класса
+    for (j in 1:k) { # Проходим по всей таблице
+      if (orderedXL[j, n] == i) # И суммируем веса всех объектов одинаковых классов
+        classes[i] = classes[i] + (k - j + 1) / (q*q)
     }
   }
-  class <- names(which.max(classes)) # Р’РµСЂРЅС‘Рј СЃР°РјС‹Р№ Р±РѕР»СЊС€РѕР№ РІРµСЃ
+  class <- names(which.max(classes)) # Вернём самый большой вес
   return (class)
 }
 
-lOO <- function(xl) { # РњРµС‚РѕРґ СЃРєРѕР»СЊР·СЏС‰РµРіРѕ РєРѕРЅС‚СЂРѕР»СЏ РґР»СЏ РїРѕРґР±РѕСЂР° РѕРїС‚РёРјР°Р»СЊРЅРѕРіРѕ k
+lOO <- function(k, q, xl) {
   sum = 0
-  l <- nrow(xl)
-  n <- ncol(xl)
-  qRange <- seq(0.5, 1, 0.1)
-  lOOForK <- matrix(0, l-1, length(qRange))
-  for (i in 1:l) {
-    xi <- xl[i, 1:(n-1)] # i-Р№ РѕР±СЉРµРєС‚ РІС‹Р±РѕСЂРєРё
-    orderedXL <- sortObj(xl[-i, ], xi) # Р’С‹Р±РѕСЂРєР° Р±РµР· i-РіРѕ РѕР±СЉРµРєС‚Р°
-    print(i)
-    for (k in 1:(l-1)) {
-      q_cnt <- 1
-      for (q in qRange) {
-        class <- kwNN(orderedXL, k, q)
-        if (class != xl[i, n])
-          lOOForK[k, q_cnt] <- lOOForK[k, q_cnt] + 1 / l
-        q_cnt <- q_cnt + 1
-      }
+  for (i in 1:dim(xl)[1]) { 
+    tmpXl <- rbind(xl[1:i-1, ], xl[i+1:dim(xl)[1],]) # Временная выборка, с удалённым i-м объектом
+    xi <- c(xl[i, 1], xl[i, 2]) # i-й объект, для которого будем запускать LOO
+    class <- kwNN(tmpXl, xi, k, q)
+    if (class != xl[i, 3]) # Если классы не совпали, увеличим сумму ошибки
+      sum = sum + 1
+  }
+  sum = sum / dim(xl)[1]  # sum / l
+  return (sum)
+}
+
+
+xl <- iris[, 3:5]
+
+k <- 1
+q <- 1
+lOOForK <- matrix(NA, 1, 2) # Для графика зависимости LOO от k
+lOOForK[1, ] <- c(k, lOO(k, q, xl))
+tmp <- matrix(NA, 1, 2)
+minErr <- 999999999
+
+for (i in 2:150) { # Подбор по LOO оптимальных k среди чисел от 2 до 150
+  for (j in 1:10) { # и q среди чисел от 1 до 10
+    curErr <- lOO(i, j, xl) # Значение LOO на текущей итерации
+    tmp[1, ] <- c(i, curErr) 
+    lOOForK <- rbind(lOOForK, tmp)
+    if (curErr < minErr) { # Если текущее значение LOO меньше минимального встреченного
+      minErr <- curErr
+      k <- i
+      q <- j
     }
   }
-  return (lOOForK) # РњР°С‚СЂРёС†Р° Р·Р°РІРёСЃРёРјРѕСЃС‚Рё LOO РѕС‚ k Рё q
 }
 
-getOptimalK <- function(lOOForK) {
-  optimalK <- 1
-  for (i in 1:nrow(lOOForK)) {
-    tmp <- which.min(lOOForK[i, ])
-    print(paste("i = ", i, "; tmp = ", tmp))
-    if (optimalK > tmp)
-      optimalK <- tmp
+colors = c("setosa" = "red", "versicolor" = "green3", "virginica" = "blue")
+plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main="Классификация ирисов Фишера методом kwNN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
+
+for (i in seq(0, 7, 0.1)) {
+  for (j in seq(0, 2.5, 0.1)) {
+    z <- c(i, j)
+    class <- kwNN(xl, z, k, q)
+    points(z[1], z[2], pch = 22, col = colors[class])
   }
-  return (optimalK)
 }
 
-getOptimalQ <- function(k, lOOForK) {
-  optimalQ <- 1
-  for (i in 1:ncol(lOOForK)) {
-    tmp <- which.min(lOOForK[k, i])
-    if (optimalQ > tmp)
-      optimalQ <- tmp
-  }
-  return (optimalQ / ncol(lOOForK))
-}
-
-getIrisClassMap <- function(xl, k, q) { 
-  # РџРѕСЃС‚СЂРѕРёРј РєР°СЂС‚Сѓ РєР»Р°СЃСЃРёС„РёРєР°С†РёРё РЅР° РѕСЃРЅРѕРІРµ РёСЂРёСЃРѕРІ Р¤РёС€РµСЂР°, Рё Р·Р°РїРёС€РµРј РµС‘ РІ РјР°С‚СЂРёС†Сѓ
-  n <- ncol(xl)
-  ox <- seq(0, 7, 0.1)
-  oy <- seq(0, 2.5, 0.1)
-  classifiedObjects <- matrix(NA, length(ox)*length(oy), n)
-  cnt <- 1
-  for (i in ox) {
-    for (j in oy) {
-      z <- c(i, j)
-      orderedXL <- sortObj(xl, z)
-      class <- kwNN(orderedXL, k, q)
-      classifiedObjects[cnt, ] <- c(i, j, class)
-      cnt <- cnt + 1
-    }
-  }
-  return (classifiedObjects)
-}
-
-drawPlots <- function(k, q, lOOForK, classifiedObjects) {
-  l <- nrow(classifiedObjects)
-  n <- ncol(classifiedObjects)
-  colors = c("setosa" = "red", "versicolor" = "green3", "virginica" = "blue")
-  par(mfrow=c(1, 2))
-  # РљР°СЂС‚Р° РєР»Р°СЃСЃРёС„РёРєР°С†РёРё
-  plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main="РљР»Р°СЃСЃРёС„РёРєР°С†РёСЏ РёСЂРёСЃРѕРІ Р¤РёС€РµСЂР° РјРµС‚РѕРґРѕРј kNN", xlab = "Р”Р»РёРЅР° Р»РµРїРµСЃС‚РєР°", ylab = "РЁРёСЂРёРЅР° Р»РµРїРµСЃС‚РєР°", asp = 1)
-  points(classifiedObjects[, 1:(n-1)], pch = 22, col = colors[classifiedObjects[, n]])
-  # Р“СЂР°С„РёРє LOO
-  plot(lOOForK[1:nrow(lOOForK), which.min(lOOForK[k, ])], type = "l", bg = "red", col = "red", main = "РћС†РµРЅРєР° РѕРїС‚РёРјР°Р»СЊРЅРѕСЃС‚Рё СЂР°Р·Р»РёС‡РЅС‹С… k РїРѕ LOO", xlab = "Р—РЅР°С‡РµРЅРёСЏ k", ylab = "Р—РЅР°С‡РµРЅРёСЏ LOO")
-  points(k, lOOForK[which.min(lOOForK[k, ])], pch = 21, bg = "blue", col = "blue")
-  label = paste("k = ", k, "\n", "LOO = ", round(lOOForK[which.min(lOOForK)], 3))
-  text(k, lOOForK[which.min(lOOForK[k, ])], labels = label, pos = 3)
-  lines(lOOForK, col = "red")  
-}
-
-main <- function() {
-  xl <- iris[, 3:5]
-  x <- sample(1:150, 50)
-  test <- xl[x, ]
-  lOOForK <- lOO(test)
-  print(lOOForK)
-  k <- getOptimalK(lOOForK)
-  q <- getOptimalQ(k, lOOForK)
-  print(paste("q = ", q))
-  classifiedObjects <- getIrisClassMap(test, k, q)
-  drawPlots(k, q, lOOForK, classifiedObjects)
-  return (lOOForK)
-}
-
-x <- main()
+# График LOO
+plot(lOOForK, type = "l", bg = "red", col = "red", main = "Оценка оптимальности различных k по LOO", xlab = "Значения k", ylab = "Значения LOO")
+label = paste("k = ", k, "\n", "LOO = ", round(minErr,3))
+text(k, minErr, labels = label, pos = 3)
+points(k, minErr, pch = 21, bg = "blue", col = "blue")
