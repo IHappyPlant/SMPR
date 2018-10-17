@@ -57,7 +57,7 @@
 	  for (i in names(classes)) { # Для каждого класса
 	    for (j in 1:k) { # Проходим по всем k соседям
 	      if (orderedXL[j, n] == i) # И суммируем веса всех объектов одинаковых классов
-	        classes[i] = classes[i] + (k - j + 1) / (q*q)
+	        classes[i] = classes[i] + (k - j + 1) * (q * q)
 	    }
 	  }
 	  class <- names(which.max(classes)) # Вернём самый большой вес

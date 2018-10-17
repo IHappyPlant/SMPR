@@ -12,14 +12,30 @@ sortObj <- function(xl, z, metricFunction = dist) {
   return (orderedXL)
 }
 
-kwNN <- function(xl, k, q) {
-  n <- dim(xl)[2]
-  classes <- xl[1:k, n]  # Берём k ближайших соседей
+kwNN_onSortedXl <- function(orderedXl, z, k, q) {
+  n <- ncol(orderedXl)
+  classes <- orderedXl[1:k, n]  # Берём k ближайших соседей
   classes <- table(classes) # Делаем для них таблицу
   classes[1:length(classes)] <- 0 # Обнуляем все значения в таблице
   for (i in names(classes)) { # Для каждого класса
     for (j in 1:k) { # Проходим по k ближайшим соседям
-      if (xl[j, n] == i) # И суммируем веса всех объектов одинаковых классов
+      if (orderedXl[j, n] == i) # И суммируем веса всех объектов одинаковых классов
+        classes[i] = classes[i] + (k - j + 1) * (q * q)
+    }
+  }
+  class <- names(which.max(classes)) # Вернём класс с самым большим весом
+  return (class)
+}
+
+kwNN <- function(xl, k, q) {
+  orderedXl <- sortObj(xl, z)
+  n <- ncol(orderedXl)
+  classes <- orderedXl[1:k, n]  # Берём k ближайших соседей
+  classes <- table(classes) # Делаем для них таблицу
+  classes[1:length(classes)] <- 0 # Обнуляем все значения в таблице
+  for (i in names(classes)) { # Для каждого класса
+    for (j in 1:k) { # Проходим по k ближайшим соседям
+      if (orderedXl[j, n] == i) # И суммируем веса всех объектов одинаковых классов
         classes[i] = classes[i] + (k - j + 1) * (q * q)
     }
   }
@@ -39,7 +55,7 @@ lOO <- function(xl) { # Метод скользящего контроля дл�
     for (k in 1:(l-1)) {
       q_cnt <- 1
       for (q in qRange) {
-        class <- kwNN(orderedXL, k, q)
+        class <- kwNN_onSortedXl(orderedXL, k, q)
         if (class != xl[i, n])
           lOOForK[k, q_cnt] <- lOOForK[k, q_cnt] + 1 / l
         q_cnt <- q_cnt + 1
@@ -75,7 +91,7 @@ getOptimalQ <- function(k, lOOForK) {
       optimalIndex <- minIndex
     }
   }
-  optimalIndex <- optimalIndex + 4
+  optimalIndex <- optimalIndex
   return (optimalIndex / 10)
 }
 
@@ -116,8 +132,6 @@ drawPlots <- function(k, q, lOOForK, classifiedObjects) {
 
 main <- function() {
   xl <- iris[, 3:5]
-  x <- sample(1:150, 50)
-  test <- xl[x, ]
   lOOForK <- lOO(xl)
   print(lOOForK)
   k <- getOptimalK(lOOForK)

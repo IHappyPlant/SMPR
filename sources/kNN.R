@@ -1,10 +1,8 @@
-dist = function(u, v) { # Евклидова метрика
-  sqrt(sum((u - v)^2))
-}
+dist = function(u, v) sqrt(sum((u - v)^2)) # Евклидова метрика
 
 sortObj <- function(xl, z, metricFunction = dist) { # Сортировка объектов по возрастанию расстояния до классифицируемого
-  l <- dim(xl)[1]
-  n <- dim(xl)[2] - 1
+  l <- nrow(xl)
+  n <- ncol(xl) - 1
   distances <- rep(0, l)
   for (i in 1:l)
     distances[i] <- metricFunction(xl[i, 1:n], z)
@@ -13,17 +11,17 @@ sortObj <- function(xl, z, metricFunction = dist) { # Сортировка об�
 }
 
 kNN <- function(xl, z, k) {
-  orderedXL <- sortObj(xl, z)
-  n <- dim(orderedXL)[2]
-  classes <- orderedXL[1:k, n] 
+  orderedXl <- sortObj(xl, z)
+  n <- ncol(orderedXl)
+  classes <- orderedXl[1:k, n] 
   counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
   class <- names(which.max(counts)) # Наиболее часто встречаемый класс
   return (class)
 }
 
-kNN_OnSortedXL <- function(xl, k) {
-  n <- dim(xl)[2]
-  classes <- xl[1:k, n] 
+kNN_OnSortedXl <- function(orderedXl, k) {
+  n <- ncol(orderedXl)
+  classes <- orderedXl[1:k, n] 
   counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
   class <- names(which.max(counts)) # Наиболее часто встречаемый класс
   return (class)
@@ -35,9 +33,9 @@ lOO <- function(xl) { # Метод скользящего контроля дл�
   lOOForK <- rep.int(0, l)
   for (i in 1:l) {
     xi <- xl[i, 1:(n-1)] # i-й объект выборки
-    orderedXL <- sortObj(xl[-i, ], xi) # Выборка без i-го объекта
+    orderedXl <- sortObj(xl[-i, ], xi) # Выборка без i-го объекта
     for (k in 1:l) {
-      class <- kNN_OnSortedXL(orderedXL, k)
+      class <- kNN_OnSortedXl(orderedXl, k)
       if (class != xl[i, n])
         lOOForK[k] <- lOOForK[k] + 1 / l
     }
@@ -45,9 +43,7 @@ lOO <- function(xl) { # Метод скользящего контроля дл�
   return (lOOForK) # Вектор зависимости LOO от k
 }
 
-getOptimalK <- function(lOOForK) {
-  return (which.min(lOOForK))
-}
+getOptimalK <- function(lOOForK) which.min(lOOForK)
 
 buildIrisClassMap <- function(xl, k) { 
   # Классифицируем объекты на основе выборки ирисов Фишера, и запишем их в матрицу
@@ -56,14 +52,13 @@ buildIrisClassMap <- function(xl, k) {
   oy <- seq(0, 2.5, 0.1)
   classifiedObjects <- matrix(NA, length(ox)*length(oy), n)
   cnt <- 1
-  for (i in ox) {
+  for (i in ox)
     for (j in oy) {
       z <- c(i, j)
-      class <- kNN(xl, k, z)
+      class <- kNN(xl, z, k)
       classifiedObjects[cnt, ] <- c(i, j, class)
       cnt <- cnt + 1
     }
-  }
   return (classifiedObjects)
 }
 
@@ -86,7 +81,7 @@ main <- function() {
   xl <- iris[, 3:5]
   lOOForK <- lOO(xl)
   k <- getOptimalK(lOOForK)
-  classifiedObjects <- getIrisClassMap(xl, k)
+  classifiedObjects <- buildIrisClassMap(xl, k)
   drawPlots(k, lOOForK, classifiedObjects)
 }
 
