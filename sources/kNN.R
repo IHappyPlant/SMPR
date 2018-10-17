@@ -12,7 +12,16 @@ sortObj <- function(xl, z, metricFunction = dist) { # Сортировка об�
   return (orderedXL)
 }
 
-kNN <- function(xl, k) {
+kNN <- function(xl, z, k) {
+  orderedXL <- sortObj(xl, z)
+  n <- dim(orderedXL)[2]
+  classes <- orderedXL[1:k, n] 
+  counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
+  class <- names(which.max(counts)) # Наиболее часто встречаемый класс
+  return (class)
+}
+
+kNN_OnSortedXL <- function(xl, k) {
   n <- dim(xl)[2]
   classes <- xl[1:k, n] 
   counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
@@ -28,7 +37,7 @@ lOO <- function(xl) { # Метод скользящего контроля дл�
     xi <- xl[i, 1:(n-1)] # i-й объект выборки
     orderedXL <- sortObj(xl[-i, ], xi) # Выборка без i-го объекта
     for (k in 1:l) {
-      class <- kNN(orderedXL, k)
+      class <- kNN_OnSortedXL(orderedXL, k)
       if (class != xl[i, n])
         lOOForK[k] <- lOOForK[k] + 1 / l
     }
@@ -40,8 +49,8 @@ getOptimalK <- function(lOOForK) {
   return (which.min(lOOForK))
 }
 
-getIrisClassMap <- function(xl, k) { 
-  # Построим карту классификации на основе ирисов Фишера, и запишем её в матрицу
+buildIrisClassMap <- function(xl, k) { 
+  # Классифицируем объекты на основе выборки ирисов Фишера, и запишем их в матрицу
   n <- ncol(xl)
   ox <- seq(0, 7, 0.1)
   oy <- seq(0, 2.5, 0.1)
@@ -50,8 +59,7 @@ getIrisClassMap <- function(xl, k) {
   for (i in ox) {
     for (j in oy) {
       z <- c(i, j)
-      orderedXL <- sortObj(xl, z)
-      class <- kNN(orderedXL, k)
+      class <- kNN(xl, k, z)
       classifiedObjects[cnt, ] <- c(i, j, class)
       cnt <- cnt + 1
     }
