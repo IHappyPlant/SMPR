@@ -31,7 +31,7 @@
 	}
 где *xl* - обучающая выборка.
 
-![LOO_kNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kNN_plot.png)
+![kNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kNN_plot.png)
 
 Достоинства алгоритма:
 1. Простота реализации
@@ -65,8 +65,8 @@
 	}
 где *orderedXL* - отсортированная обучающая выборка.
 
-![kwNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/LOO_kwNN.png) 
-![kwNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kwNN.png) 
+![kwNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kwNN_plot.png) 
+
 
 Достоинства алгоритма
 1. Простота реализации
