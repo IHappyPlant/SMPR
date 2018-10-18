@@ -1,6 +1,4 @@
-dist = function(u, v) { # Евклидова метрика
-  sqrt(sum((u - v)^2))
-}
+dist = function(u, v) sqrt(sum((u - v)^2)) # Евклидова метрика
 
 sortObj <- function(xl, z, metricFunction = dist) {
   l <- dim(xl)[1]
@@ -14,43 +12,40 @@ sortObj <- function(xl, z, metricFunction = dist) {
 
 kwNN_onSortedXl <- function(orderedXl, z, k, q) {
   n <- ncol(orderedXl)
-  classes <- orderedXl[1:k, n]  # Берём k ближайших соседей
-  classes <- table(classes) # Делаем для них таблицу
-  classes[1:length(classes)] <- 0 # Обнуляем все значения в таблице
-  for (i in names(classes)) { # Для каждого класса
-    for (j in 1:k) { # Проходим по k ближайшим соседям
-      if (orderedXl[j, n] == i) # И суммируем веса всех объектов одинаковых классов
+  classes <- orderedXl[1:k, n]        # Берём k ближайших соседей
+  classes <- table(classes)           # Делаем для них таблицу
+  classes[1:length(classes)] <- 0     # Обнуляем все значения в таблице
+  for (i in names(classes))           # Для каждого класса
+    for (j in 1:k)                    # Проходим по k ближайшим соседям
+      if (orderedXl[j, n] == i)       # И суммируем веса всех объектов одинаковых классов
         classes[i] = classes[i] + (k - j + 1) * (q * q)
-    }
-  }
-  class <- names(which.max(classes)) # Вернём класс с самым большим весом
+  class <- names(which.max(classes))  # Вернём класс с самым большим весом
   return (class)
 }
 
 kwNN <- function(xl, k, q) {
   orderedXl <- sortObj(xl, z)
   n <- ncol(orderedXl)
-  classes <- orderedXl[1:k, n]  # Берём k ближайших соседей
-  classes <- table(classes) # Делаем для них таблицу
-  classes[1:length(classes)] <- 0 # Обнуляем все значения в таблице
-  for (i in names(classes)) { # Для каждого класса
-    for (j in 1:k) { # Проходим по k ближайшим соседям
-      if (orderedXl[j, n] == i) # И суммируем веса всех объектов одинаковых классов
+  classes <- orderedXl[1:k, n]        # Берём k ближайших соседей
+  classes <- table(classes)           # Делаем для них таблицу
+  classes[1:length(classes)] <- 0     # Обнуляем все значения в таблице
+  for (i in names(classes))           # Для каждого класса
+    for (j in 1:k)                    # Проходим по k ближайшим соседям
+      if (orderedXl[j, n] == i)       # И суммируем веса всех объектов одинаковых классов
         classes[i] = classes[i] + (k - j + 1) * (q * q)
-    }
-  }
-  class <- names(which.max(classes)) # Вернём класс с самым большим весом
+  class <- names(which.max(classes))  # Вернём класс с самым большим весом
   return (class)
 }
 
-lOO <- function(xl) { # Метод скользящего контроля для подбора оптимального k
+lOO <- function(xl) { 
+  # Метод скользящего контроля для подбора оптимального k
   l <- nrow(xl)
   n <- ncol(xl)
   qRange <- seq(0.1, 1, 0.1)
   lOOForK <- matrix(0, l-1, length(qRange))
   for (i in 1:l) {
-    xi <- xl[i, 1:(n-1)] # i-й объект выборки
-    orderedXL <- sortObj(xl[-i, ], xi) # Выборка без i-го объекта
+    xi <- xl[i, 1:(n-1)]                # i-й объект выборки
+    orderedXL <- sortObj(xl[-i, ], xi)  # Выборка без i-го объекта
     print(i)
     for (k in 1:(l-1)) {
       q_cnt <- 1
@@ -71,7 +66,7 @@ getOptimalK <- function(lOOForK) {
   for (i in 1:ncol(lOOForK)) {
     minIndex <- which.min(lOOForK[, i])
     minVal <- lOOForK[minIndex, i]
-    print(paste("i = ", i, "; tmp = ", minIndex))
+    #print(paste("i = ", i, "; tmp = ", minIndex))
     if (optimalVal > minVal) {
       optimalIndex <- minIndex
       optimalVal <- minVal
@@ -133,11 +128,11 @@ drawPlots <- function(k, q, lOOForK, classifiedObjects) {
 main <- function() {
   xl <- iris[, 3:5]
   lOOForK <- lOO(xl)
-  print(lOOForK)
+  #print(lOOForK)
   k <- getOptimalK(lOOForK)
-  print(paste("k = ", k))
+  #print(paste("k = ", k))
   q <- getOptimalQ(k, lOOForK)
-  print(paste("q = ", q))
+  #print(paste("q = ", q))
   classifiedObjects <- getIrisClassMap(xl, k, q)
   drawPlots(k, q, lOOForK, classifiedObjects)
   return (lOOForK)
