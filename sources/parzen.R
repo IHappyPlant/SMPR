@@ -42,8 +42,7 @@ parzen <- function(xl, h, distances, kernelFunction = kernel.G) {
 lOO <- function(xl, kernelFunction = kernel.G) {
   l <- nrow(xl)
   n <- ncol(xl)
-  #hvalues <- seq(0.1, 2, 0.1)
-  hvalues <- seq(1, 150, 1) # чисто поорать
+  hvalues <- seq(0.1, 2, 0.1)
   sum <- rep(0, length(hvalues))
   for (i in 1:l) {
     cnt <- 1
@@ -62,8 +61,7 @@ lOO <- function(xl, kernelFunction = kernel.G) {
   return (sum)
 }
 
-#getOptimalH <- function(looForH) which.min(looForH) / 10
-getOptimalH <- function(looForH) which.min(looForH)
+getOptimalH <- function(looForH) which.min(looForH) / 10
 
 buildClassMap <- function(xl, h, kernelFunction = kernel.G) {
   l <- nrow(xl)
@@ -95,14 +93,10 @@ buildPlots <- function(xl, classifiedObjects, looForH, h) {
   plot(xl[,1:(n-1)], pch = 21, bg = colors[xl[, n]], col = colors[xl[, n]], main = "Классификация ирисов Фишера методом парзеновского окна", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
   points(classifiedObjects[, 1:(n-1)], pch = 22, col = colors[classifiedObjects[, n]])
   # График lOO
-  #plot(seq(0.1, 2, 0.1), looForH[1:length(looForH)], type = "l", bg = "red", col = "red", main = "Оценка оптимальности различных h по LOO", xlab = "Значения h", ylab = "Значения LOO")
-  plot(seq(1, 150, 1), looForH[1:length(looForH)], type = "l", bg = "red", col = "red", main = "Оценка оптимальности различных h по LOO", xlab = "Значения h", ylab = "Значения LOO")
-  #points(h, looForH[h10], pch = 21, bg = "blue", col = "blue")
-  points(h, looForH[h], pch = 21, bg = "blue", col = "blue")
-  #label <- paste("h = ", h, "\n", "LOO = ", round(looForH[h10], 3))
-  label <- paste("h = ", h, "\n", "LOO = ", round(looForH[h], 3))
-  #text(h, looForH[h10], labels = label, pos = 3)
-  text(h, looForH[h], labels = label, pos = 3)
+  plot(seq(0.1, 2, 0.1), looForH[1:length(looForH)], type = "l", bg = "red", col = "red", main = "Оценка оптимальности различных h по LOO", xlab = "Значения h", ylab = "Значения LOO")
+  points(h, looForH[h10], pch = 21, bg = "blue", col = "blue")
+  label <- paste("h = ", h, "\n", "LOO = ", round(looForH[h10], 3))
+  text(h, looForH[h10], labels = label, pos = 3)
 }
 
 main <- function(kernelFunction = kernel.G) {
