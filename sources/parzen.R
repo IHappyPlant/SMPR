@@ -1,4 +1,4 @@
-dist <- function(u, v) sqrt(sum(u-v)^2)
+dist <- function(u, v) sqrt(sum((u-v)^2))
 
 kernel.G <- function(r) (2*pi)^(-0.5)*exp(-0.5*(r^2)) # Гауссовское ядро
 kernel.E <- function(r) (3/4)*((1-r^2)^2)*(abs(r) <= 1) # Ядро Епанечникова
@@ -32,10 +32,9 @@ parzen <- function(xl, h, distances, kernelFunction = kernel.G) {
     r <- distances[i] / h
     weights[class] <- weights[class] + kernelFunction(r) # И прибавляем его вес к общему весу его класса
   }
-  if (max(weights) == 0) # Если точка не попала в окно (не проклассифицировалась)
-    return (0) # То вернуть 0
-  class <- names(which.max(weights))
-  return (class) # Иначе вернуть класс с максимальным весом
+  if (max(weights) != 0) # Если точке присвоились какие нибудь веса классов (точка попала в окно)
+    return (names(which.max(weights))) # Вернуть класс с максимальным весом
+  return (0)
 }
 
 
@@ -107,4 +106,4 @@ main <- function(kernelFunction = kernel.G) {
   buildPlots(xl, classifiedObjects, lOOForH, h)
 }
 
-main(kernel.G)
+main(kernel.Q)
