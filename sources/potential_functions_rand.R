@@ -1,3 +1,4 @@
+require("plotrix")
 dist <- function(u, v) sqrt(sum((u-v)^2)) # Евклидова метрика
 
 kernel.Q <- function(r) (15/16)*(1 - r^2)^2*(abs(r) <= 1) # Квартическое ядро
@@ -93,18 +94,18 @@ drawPlots <- function(xl, classifiedObjects, potentials, h) {
   colors <- c("setosa" = "red", "versicolor" = "green3", "virginica" = "blue")
   # Полупрозрачные цвета для потенциалов
   redTrans <- col2rgb("red")
-  redTrans <- rgb(redTrans[1], redTrans[2], redTrans[3], alpha = 255/3, max = 255)
+  redTrans <- rgb(redTrans[1], redTrans[2], redTrans[3], alpha = 255/5, max = 255)
   green3Trans <- col2rgb("green3")
   green3Trans <- rgb(green3Trans[1], green3Trans[2], green3Trans[3], alpha = 255/3, max = 255)
   blueTrans <- col2rgb("blue")
-  blueTrans <- rgb(blueTrans[1], blueTrans[2], blueTrans[3], alpha = 255/3, max = 255)
+  blueTrans <- rgb(blueTrans[1], blueTrans[2], blueTrans[3], alpha = 255/5, max = 255)
   colorsTrans <- c("setosa" = redTrans, "versicolor" = green3Trans, "virginica" = blueTrans)
   par(mfrow=c(1,2))
   # Карта потенциалов
   plot(xl[, 1:(n-1)], pch = 21, bg = colors[xl[,n]], col = colors[xl[,n]], main = "Карта потенциалов", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
   for (i in 1:l) {
     if (potentials[i] != 0)
-      draw.circle(xl[i, 1], xl[i, 2], radius = h[i], border = colorsTrans[xl[i, n]], col = colorsTrans[xl[i, n]])
+      draw.circle(xl[i, 1], xl[i, 2], radius = potentials[i], border = colorsTrans[xl[i, n]], col = colorsTrans[xl[i, n]])
   }
   # Карта классификации
   plot(xl[, 1:(n-1)], pch = 21, bg = colors[xl[,n]], col = colors[xl[,n]], main = "Классификация ирисов Фишера методом потенциальных функций", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)

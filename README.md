@@ -227,7 +227,7 @@
     }
 Алгоритм тестировался на выборке ирисов Фишера. Использовалось квартическое ядро. Радиусы потенциалов *h* для класса *setosa* были положены равными 1, так как класс далеко от остальных, а радиусы для *versicolor* и *virginica*  0.4, так как это число было оптимальным значением *h* для метода парзеновского окна.  
 Результат работы:
-![](https://github.com/IHappyPlant/RProjects/blob/master/img/pF_plot_rand.png)
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/pF_plot_rand_v2.png)
 
 Достоинства алгоритма:
 
