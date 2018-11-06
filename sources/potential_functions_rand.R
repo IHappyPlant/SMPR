@@ -115,10 +115,9 @@ drawPlots <- function(xl, classifiedObjects, potentials, h) {
   par(mfrow=c(1,2))
   # Карта потенциалов
   plot(xl[, 1:(n-1)], pch = 21, bg = colors[xl[,n]], col = colors[xl[,n]], main = "Карта потенциалов", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
-  for (i in 1:l) {
+  for (i in 1:l)
     if (potentials[i] != 0)
       draw.circle(xl[i, 1], xl[i, 2], radius = potentials[i], border = colorsTrans[xl[i, n]], col = colorsTrans[xl[i, n]])
-  }
   # Карта классификации
   plot(xl[, 1:(n-1)], pch = 21, bg = colors[xl[,n]], col = colors[xl[,n]], main = "Классификация ирисов Фишера методом потенциальных функций", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
   points(classifiedObjects[, 1:(n-1)], pch = 22, col = colors[classifiedObjects[, n]])
