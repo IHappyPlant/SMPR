@@ -220,7 +220,7 @@
 	  # Посчитаем расстояния от каждого объекта выборки до остальных
 	  distances <- matrix(0, l, l)
 	  for (i in 1:l)
-		distances[i,] <- getDistances(xl, c(xl[i, 1], xl[i, 2]))
+        distances[i,] <- getDistances(xl, c(xl[i, 1], xl[i, 2]))
       # Пока число ошибок больше заданного
       while (err > eps) {
         while (TRUE) {
