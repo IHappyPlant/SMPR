@@ -228,8 +228,8 @@
           rand <- sample(1:l, 1)
           class <- pF(distances[rand,], potentials, h, xl)
           if (class != xl[rand, n]) {
-          potentials[rand] = potentials[rand] + 1
-          break
+            potentials[rand] = potentials[rand] + 1
+            break
           }
         }
         # Подсчет числа ошибок
