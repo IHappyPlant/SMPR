@@ -9,8 +9,8 @@ kernel.P <- function(r) (0.5)*(abs(r) <= 1) # Прямоугольное ядр�
 
 getSubsetByPotentials <- function(xl, potentials, res) {
   # Получить новый массив со значениями, соответствующими ненулевым значениям потенциалов
-  if(!is.null(ncol(res))) return (res[as.numeric(rownames(xl[which(potentials != 0),])), ])
-  return (res[as.numeric(rownames(xl[which(potentials != 0),]))])
+  if(!is.null(ncol(res))) return (res[as.numeric(rownames(xl[which(potentials != 0),])), ]) # Если не вектор
+  return (res[as.numeric(rownames(xl[which(potentials != 0),]))]) # Если вектор
 }
 
 getDistances <- function(xl, z, metricFunction = dist) {
