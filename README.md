@@ -195,7 +195,7 @@
 
  Программная реализация метода потенциальных функций:
  
-    pF <- function(distances, potentials, h, xl) {
+    pF <- function(distances, potentials, h, xl, kernelFunction = kernel.G) {
       l <- nrow(xl)
       n <- ncol(xl)
       classes <- xl[, n]
@@ -204,26 +204,29 @@
       for (i in 1:l) { # Для каждого объекта выборки
         class <- xl[i, n] # Берется его класс
         r <- distances[i] / h[i]
-        weights[class] <- weights[class] + potentials[i] * kernel.Q(r) # Считается его вес прибавляется к общему ввесу его класса
+        weights[class] <- weights[class] + potentials[i] * kernelFunction(r) # Считается его вес, и прибавляется к общему ввесу его класса
       }
       if (max(weights) != 0) return (names(which.max(weights))) # Если есть веса больше нуля, то вернуть класс с наибольшим весом
       return ("") # Если точка не проклассифицировалась, то вернуть пустую строку
     }
 Программная реализация алгоритма подбора ![gamma_i](http://latex.codecogs.com/gif.latex?%5Cgamma_%7Bi%7D):
 
-    getPotentials <- function(xl, h, eps) {
+    getPotentials <- function(xl, h, eps, kernelFunction = kernel.G) {
       # Получить потенциалы всех объектов выборки
       l <- nrow(xl)
       n <- ncol(xl)
       potentials <- rep(0, l)
       err <- eps + 1
+	  # Посчитаем расстояния от каждого объекта выборки до остальных
+	  distances <- matrix(0, l, l)
+	  for (i in 1:l)
+		distances[i,] <- getDistances(xl, c(xl[i, 1], xl[i, 2]))
       # Пока число ошибок больше заданного
       while (err > eps) {
         while (TRUE) {
           # Пока не получим несоответствие классов, чтобы обновить потенциалы
           rand <- sample(1:l, 1)
-          distances <- getDistances(xl, xl[rand, 1:(n-1)])
-          class <- pF(distances, potentials, h, xl)
+          class <- pF(distances[rand,], potentials, h, xl)
           if (class != xl[rand, n]) {
           potentials[rand] = potentials[rand] + 1
           break
@@ -232,8 +235,7 @@
         # Подсчет числа ошибок
         err <- 0
         for (i in 1:l) {
-          distances <- getDistances(xl, xl[i, 1:(n-1)])
-          class <- pF(distances, potentials, h, xl)
+          class <- pF(distances[i,], potentials, h, xl)
           err <- err + (class != xl[i, n])
         }
       }
@@ -246,7 +248,7 @@
 Достоинства алгоритма:
 
 1. Большое количество параметров для подбора.  
-2.  После настройки силы потенциалов, объекты выборки с нулевыми потенциалами можно больше не хранить.
+2. После настройки силы потенциалов, объекты выборки с нулевыми потенциалами можно не использовать при классификации.
 
 Недостатки алгоритма:
 
