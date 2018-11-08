@@ -40,12 +40,11 @@ get_margin_for_all <- function(xl, k, q) {
   # Для всех объектов выборки получить их отступы
   l <- nrow(xl)
   n <- ncol(xl)
-  w <- data.frame(matrix(0, l, 2))
-  colnames(w) <- c("w", "class")
+  w <- rep(0, l)
   for (i in 1:l) {
     z <- xl[i, 1:(n-1)]
     target_class <- xl[i, n]
-    w[i, ] <- c(get_margin(xl, z, k, q, target_class), toString(target_class))
+    w[i] <- get_margin(xl, z, k, q, target_class)
   }
   return (w)
 }
@@ -55,14 +54,15 @@ stolp <- function(xl, k, q, eps, eps_noise) {
   n <- ncol(xl)
   omega <- data.frame()
   w <- get_margin_for_all(xl, k, q)
-  new_xl <- xl[which(w[1:l,1] > eps_noise),] # Удалить выбросы
+  new_xl <- xl[which(w > eps_noise),] # Удалить выбросы
   l <- nrow(new_xl) # Пересчитать длину выборки
   rownames(new_xl) <- c(1:l) # Перенумеровать выборку
   w <- get_margin_for_all(new_xl, k, q) # Пересчитать отступы
   # Взять по одному эталону из каждого класса
   for (i in unique(new_xl[, n])) {
-      indexes <- as.numeric(rownames(w[which(new_xl[, n] == i),]))
-      etalon <- new_xl[indexes[which.max(w[indexes,1])],]
+      indexes <- which(new_xl[, n] == i)
+      print(indexes)
+      etalon <- new_xl[indexes[which.max(w)],]
       omega <- rbind(omega, etalon)
   }
   print(omega)
