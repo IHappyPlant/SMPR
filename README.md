@@ -281,6 +281,6 @@
 Протестируем алгоритм на выборке ирисов Фишера.  
 В качестве алгоритма классификации будем использовать kwNN(k = 10, q = 0.1)  
 Результат работы STOLP:  
-![](https://github.com/IHappyPlant/RProjects/blob/master/img/STOLP_plot.png)
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/STOLP_plot1.png)
 
 [В начало](#теория-машинного-обучения)
