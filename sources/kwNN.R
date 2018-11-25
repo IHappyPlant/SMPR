@@ -44,14 +44,13 @@ lOO <- function(xl) {
   qRange <- seq(0.1, 1, 0.1)
   lOOForK <- matrix(0, l-1, length(qRange))
   for (i in 1:l) {
+    print(i)
     xi <- xl[i, 1:(n-1)]                # i-й объект выборки
     orderedXL <- sortObj(xl[-i, ], xi)  # Выборка без i-го объект
     for (k in 1:(l-1)) {
       q_cnt <- 1
       for (q in qRange) {
-        class <- kwNN_onSortedXl(orderedXL, k, q)
-        if (class != xl[i, n])
-          lOOForK[k, q_cnt] <- lOOForK[k, q_cnt] + 1 / l
+        lOOForK[k, q_cnt] <- lOOForK[k, q_cnt] + (kwNN_onSortedXl(orderedXL, k, q) != xl[i, n]) / l
         q_cnt <- q_cnt + 1
       }
     }
@@ -123,13 +122,13 @@ drawPlots <- function(k, q, lOOForK, classifiedObjects) {
   lines(lOOForK, col = "red")  
 }
 
-main <- function() {
+#main <- function() {
   xl <- iris[, 3:5]
   lOOForK <- lOO(xl)
-  k <- getOptimalK(lOOForK)
-  q <- getOptimalQ(k, lOOForK)
-  classifiedObjects <- getIrisClassMap(xl, k, q)
-  drawPlots(k, q, lOOForK, classifiedObjects)
-}
+  #k <- getOptimalK(lOOForK)
+  #q <- getOptimalQ(k, lOOForK)
+  #classifiedObjects <- getIrisClassMap(xl, k, q)
+  #drawPlots(k, q, lOOForK, classifiedObjects)
+#}
 
-main()
+#main()
