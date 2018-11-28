@@ -48,14 +48,7 @@
 
 Алгоритм:
 
-    kNN <- function(xl, k, z) {
-	  orderedXL <- sortObj(xl, z)
-	  n <- dim(orderedXL)[2]
-	  classes <- orderedXL[1:k, n] 
-	  counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
-	  class <- names(which.max(counts)) # Наиболее часто встречаемый класс
-	  return (class)
-	}
+    kNN <- function(xl, z, k) names(which.max(table(sort_objects_by_dist(xl, z)[1:k, ncol(xl)])))
 где *xl* - обучающая выборка.
 
 ![kNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kNN_plot.png)
