@@ -6,13 +6,11 @@ kNN <- function(xl, z, k) names(which.max(table(sort_objects_by_dist(xl, z)[1:k,
 
 kNN_OnSortedXl <- function(orderedXl, k) names(which.max(table(orderedXl[1:k, ncol(orderedXl)])))
   
-
 lOO <- function(xl) { # Метод скользящего контроля для подбора оптимального k
   l <- nrow(xl)
   n <- ncol(xl)
   lOOForK <- rep.int(0, l-1)
   for (i in 1:l) {
-    print(i)
     orderedXl <- sort_objects_by_dist(xl[-i, ], xl[i, 1:(n-1)]) # Выборка без i-го объекта, отсортированная относительно него
     for (k in 1:(l-1)) lOOForK[k] <- lOOForK[k] + (kNN_OnSortedXl(orderedXl, k) != xl[i, n]) / l
   }
