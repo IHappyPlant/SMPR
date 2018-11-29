@@ -76,8 +76,9 @@ draw_plots <- function(xl, omega, classified_objects) {
   par(mfrow=c(1,2))
   plot(xl[, 1:(n-1)], pch = 21, col = colors[xl[,n]], main = "Эталонные объекты", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
   points(omega[, 1:(n-1)], pch = 21, bg = colors[omega[,n]], col = "black")
-  plot(omega[, 1:(n-1)], pch = 21, bg = colors[omega[,n]], col = colors[omega[,n]], xlim = c(0, 7), main = "Классификация ирисов Фишера методом kwNN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
-  points(classified_objects[, 1:(n-1)], pch = 22, col = colors[classified_objects[,n]])
+  plot(xl[, 1:(n-1)], pch = 21, bg = colors[xl[,n]], col = colors[xl[,n]], xlim = c(0, 7), main = "Классификация ирисов Фишера методом kwNN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
+  points(classified_objects[, 1:(n-1)], pch = 21, col = colors[classified_objects[,n]])
+  points(omega[, 1:(n-1)], pch = 21, col = "black", bg = colors[omega[,n]], lwd = 2)
 }
 
 main <- function() {
