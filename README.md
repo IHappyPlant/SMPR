@@ -71,6 +71,7 @@
 При реализации использовалась та же выборка ирисов Фишера. Значения *k* и *q* подбирались по *LOO*  
 Алгоритм:
 
+    w.kwnn <- function(i, k, q) (i <= k) * q^i # Весовая функция
     kwNN <- function(xl, z, k, q) {
       ordered_xl <- sort_objects_by_dist(xl, z)
       weights <- w.kwnn(1:nrow(ordered_xl), k, q)

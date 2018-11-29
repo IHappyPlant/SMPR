@@ -2,7 +2,7 @@ distance <- function(u, v) sqrt(sum((u - v)^2))
 get_distances <- function(xl, z) apply(xl[,1:(ncol(xl)-1)], 1, distance, z)
 sort_objects_by_dist <- function(xl, z) xl[order(get_distances(xl, z)),]
 
-w.kwnn <- function(i, k, q) (i <= k) * q^i
+w.kwnn <- function(i, k, q) (i <= k) * q^i # Весовая функция
 kwNN_onSortedXl <- function(ordered_xl, k, q) {
   weights <- w.kwnn(1:nrow(ordered_xl), k, q)
   names(weights) <- ordered_xl[, ncol(ordered_xl)]
