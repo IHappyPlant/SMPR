@@ -49,8 +49,8 @@ drawPlots <- function(k, q, lOOForK, classifiedObjects) {
   q10 = q * 10
   par(mfrow=c(1, 2))
   # Карта классификации
-  plot(iris[, 3:4], pch = 21, bg = colors[iris$Species], col = colors[iris$Species], main="Классификация ирисов Фишера методом kwNN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
-  points(classifiedObjects[, 1:(n-1)], pch = 22, col = colors[classifiedObjects[, n]])
+  plot(xl[, 1:(n-1)], pch = 21, bg = colors[xl[,n]], col = colors[xl[,n]], xlim = c(0, 7), main="Классификация ирисов Фишера методом kwNN", xlab = "Длина лепестка", ylab = "Ширина лепестка", asp = 1)
+  points(classifiedObjects[,1:(n-1)], pch = 22, col = colors[classifiedObjects[,n]])
   # График LOO
   plot(lOOForK[1:nrow(lOOForK), q10], type = "l", bg = "red", col = "red", main = "Оценка оптимальности различных k по LOO", xlab = "Значения k", ylab = "Значения LOO")
   points(k, lOOForK[k, q10], pch = 21, bg = "blue", col = "blue")
@@ -59,7 +59,7 @@ drawPlots <- function(k, q, lOOForK, classifiedObjects) {
   lines(lOOForK, col = "red")  
 }
 
-#main <- function() {
+main <- function() {
   xl <- iris[, 3:5]
   lOOForK <- lOO(xl)
   opt_par <- getOptimalPar(lOOForK)
@@ -67,6 +67,6 @@ drawPlots <- function(k, q, lOOForK, classifiedObjects) {
   q <- opt_par[2] / 10
   classifiedObjects <- getIrisClassMap(xl, k, q)
   drawPlots(k, q, lOOForK, classifiedObjects)
-#}
+}
 
-#main()
+main()
