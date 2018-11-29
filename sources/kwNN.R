@@ -1,40 +1,21 @@
-dist = function(u, v) sqrt(sum((u - v)^2)) # Евклидова метрика
+distance <- function(u, v) sqrt(sum((u - v)^2))
+get_distances <- function(xl, z) apply(xl[,1:(ncol(xl)-1)], 1, distance, z)
+sort_objects_by_dist <- function(xl, z) xl[order(get_distances(xl, z)),]
 
-sortObj <- function(xl, z, metricFunction = dist) {
-  l <- dim(xl)[1]
-  n <- dim(xl)[2] - 1
-  distances <- rep(0, l)
-  for (i in 1:l)
-    distances[i] <- metricFunction(xl[i, 1:n], z)
-  orderedXL <- xl[order(distances), ]
-  return (orderedXL)
-}
-
-kwNN_onSortedXl <- function(orderedXl, k, q) {
-  n <- ncol(orderedXl)
-  classes <- orderedXl[1:k, n]        # Берём k ближайших соседей
-  classes <- table(classes)           # Делаем для них таблицу
-  classes[1:length(classes)] <- 0     # Обнуляем все значения в таблице
-  for (i in names(classes))           # Для каждого класса
-    for (j in 1:k)                    # Проходим по k ближайшим соседям
-      if (orderedXl[j, n] == i)       # И суммируем веса всех объектов одинаковых классов
-        classes[i] = classes[i] + q^j
-  class <- names(which.max(classes))  # Вернём класс с самым большим весом
-  return (class)
+w.kwnn <- function(i, k, q) (i <= k) * q^i
+kwNN_onSortedXl <- function(ordered_xl, k, q) {
+  weights <- w.kwnn(1:nrow(ordered_xl), k, q)
+  names(weights) <- ordered_xl[, ncol(ordered_xl)]
+  sum_by_class <- sapply(unique(sort(names(weights))), function(class, weights) sum(weights[names(weights) == class]), weights)
+  names(which.max(sum_by_class))
 }
 
 kwNN <- function(xl, z, k, q) {
-  orderedXl <- sortObj(xl, z)
-  n <- ncol(orderedXl)
-  classes <- orderedXl[1:k, n]        # Берём k ближайших соседей
-  classes <- table(classes)           # Делаем для них таблицу
-  classes[1:length(classes)] <- 0     # Обнуляем все значения в таблице
-  for (i in names(classes))           # Для каждого класса
-    for (j in 1:k)                    # Проходим по k ближайшим соседям
-      if (orderedXl[j, n] == i)       # И суммируем веса всех объектов одинаковых классов
-        classes[i] = classes[i] + q^j
-  class <- names(which.max(classes))  # Вернём класс с самым большим весом
-  return (class)
+  ordered_xl <- sort_objects_by_dist(xl, z)
+  weights <- w.kwnn(1:nrow(ordered_xl), k, q)
+  names(weights) <- ordered_xl[, ncol(ordered_xl)]
+  sum_by_class <- sapply(unique(sort(names(weights))), function(class, weights) sum(weights[names(weights) == class]), weights)
+  names(which.max(sum_by_class))
 }
 
 lOO <- function(xl) { 
@@ -44,65 +25,21 @@ lOO <- function(xl) {
   qRange <- seq(0.1, 1, 0.1)
   lOOForK <- matrix(0, l-1, length(qRange))
   for (i in 1:l) {
-    print(i)
-    xi <- xl[i, 1:(n-1)]                # i-й объект выборки
-    orderedXL <- sortObj(xl[-i, ], xi)  # Выборка без i-го объект
-    for (k in 1:(l-1)) {
-      q_cnt <- 1
-      for (q in qRange) {
-        lOOForK[k, q_cnt] <- lOOForK[k, q_cnt] + (kwNN_onSortedXl(orderedXL, k, q) != xl[i, n]) / l
-        q_cnt <- q_cnt + 1
-      }
-    }
+    orderedXL <- sort_objects_by_dist(xl[-i, ], xl[i, 1:(n-1)])  # Выборка без i-го объекта, отсортированная относительно него
+    for (k in 1:(l-1)) lOOForK[k,] <- lOOForK[k,] + sapply(qRange, function(q) (kwNN_onSortedXl(orderedXL, k, q) != xl[i, n]) / l)
   }
   return (lOOForK) # Матрица зависимости LOO от k и q
 }
 
-getOptimalK <- function(lOOForK) {
-  optimalIndex <- 1
-  optimalVal <- lOOForK[1, 1]
-  for (i in 1:ncol(lOOForK)) {
-    minIndex <- which.min(lOOForK[, i])
-    minVal <- lOOForK[minIndex, i]
-    #print(paste("i = ", i, "; tmp = ", minIndex))
-    if (optimalVal > minVal) {
-      optimalIndex <- minIndex
-      optimalVal <- minVal
-    }
-  }
-  return (optimalIndex)
-}
-
-getOptimalQ <- function(k, lOOForK) {
-  optimalVal <- lOOForK[k, 1]
-  optimalIndex <- 1
-  for (i in 2:ncol(lOOForK)) {
-    minValue <- lOOForK[k, i]
-    if (optimalVal > minValue) {
-      optimalVal <- minValue
-      optimalIndex <- i
-    }
-  }
-  optimalIndex <- optimalIndex
-  return (optimalIndex / 10)
-}
+getOptimalPar <- function(lOOForK) arrayInd(which.min(lOOForK), dim(lOOForK)) # Получить оптимальные k и q
 
 getIrisClassMap <- function(xl, k, q) { 
   # Построим карту классификации на основе ирисов Фишера, и запишем её в матрицу
-  n <- ncol(xl)
-  ox <- seq(0, 7, 0.1)
-  oy <- seq(0, 2.5, 0.1)
-  classifiedObjects <- matrix(NA, length(ox)*length(oy), n)
-  cnt <- 1
-  for (i in ox) {
-    for (j in oy) {
-      z <- c(i, j)
-      class <- kwNN(xl, z, k, q)
-      classifiedObjects[cnt, ] <- c(i, j, class)
-      cnt <- cnt + 1
-    }
-  }
-  return (classifiedObjects)
+  classifiedObjects <- c()
+  for (i in seq(0, 7, 0.1))
+    for (j in seq(0, 2.5, 0.1)) 
+      classifiedObjects <- rbind(classifiedObjects, c(i, j, kwNN(xl, c(i, j), k, q)))
+  classifiedObjects
 }
 
 drawPlots <- function(k, q, lOOForK, classifiedObjects) {
@@ -125,10 +62,11 @@ drawPlots <- function(k, q, lOOForK, classifiedObjects) {
 #main <- function() {
   xl <- iris[, 3:5]
   lOOForK <- lOO(xl)
-  #k <- getOptimalK(lOOForK)
-  #q <- getOptimalQ(k, lOOForK)
-  #classifiedObjects <- getIrisClassMap(xl, k, q)
-  #drawPlots(k, q, lOOForK, classifiedObjects)
+  opt_par <- getOptimalPar(lOOForK)
+  k <- opt_par[1]
+  q <- opt_par[2] / 10
+  classifiedObjects <- getIrisClassMap(xl, k, q)
+  drawPlots(k, q, lOOForK, classifiedObjects)
 #}
 
 #main()

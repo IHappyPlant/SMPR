@@ -72,19 +72,11 @@
 Алгоритм:
 
     kwNN <- function(xl, z, k, q) {
-	  orderedXL <- sortObj(xl, z);
-	  n <- ncol(orderedXl)
-	  classes <- orderedXL[1:k, n]     # Берём k ближайших соседей
-	  classes <- table(classes)        # Делаем для них таблицу
-	  classes[1:length(classes)] <- 0  # Обнуляем все значения в таблице
-	  for (i in names(classes)) {      # Для каждого класса
-	    for (j in 1:k) {               # Проходим по всем k соседям
-	      if (orderedXL[j, n] == i)    # И суммируем веса всех объектов одинаковых классов
-	        classes[i] = classes[i] + q^j
-	    }
-	  }
-	  class <- names(which.max(classes)) # Вернём самый большой вес
-	  return (class)
+      ordered_xl <- sort_objects_by_dist(xl, z)
+      weights <- w.kwnn(1:nrow(ordered_xl), k, q)
+      names(weights) <- ordered_xl[, ncol(ordered_xl)]
+      sum_by_class <- sapply(unique(sort(names(weights))), function(class, weights) sum(weights[names(weights) == class]), weights)
+      names(which.max(sum_by_class))
 	}
 где *xl* - обучающая выборка.
 

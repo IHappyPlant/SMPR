@@ -1,36 +1,16 @@
-dist = function(u, v) sqrt(sum((u - v)^2)) # Евклидова метрика
+distance <- function(u, v) sqrt(sum((u - v)^2))
+get_distances <- function(xl, z) apply(xl[,1:(ncol(xl)-1)], 1, distance, z)
+sort_objects_by_dist <- function(xl, z) xl[order(get_distances(xl, z)),]
 
-sortObj <- function(xl, z, metricFunction = dist) {
-  l <- dim(xl)[1]
-  n <- dim(xl)[2] - 1
-  distances <- rep(0, l)
-  for (i in 1:l)
-    distances[i] <- metricFunction(xl[i, 1:n], z)
-  orderedXL <- xl[order(distances), ]
-  return (orderedXL)
-}
+kNN <- function(xl, z, k) names(which.max(table(sort_objects_by_dist(xl, z)[1:k, ncol(xl)])))
 
+w.kwnn <- function(i, k, q) (i <= k) * q^i
 kwNN <- function(xl, z, k, q) {
-  orderedXl <- sortObj(xl, z)
-  n <- ncol(orderedXl)
-  classes <- orderedXl[1:k, n]        # Берём k ближайших соседей
-  classes <- table(classes)           # Делаем для них таблицу
-  classes[1:length(classes)] <- 0     # Обнуляем все значения в таблице
-  for (i in names(classes))           # Для каждого класса
-    for (j in 1:k)                    # Проходим по k ближайшим соседям
-      if (orderedXl[j, n] == i)       # И суммируем веса всех объектов одинаковых классов
-        classes[i] = classes[i] + q^j
-  class <- names(which.max(classes))  # Вернём класс с самым большим весом
-  return (class)
-}
-
-kNN <- function(xl, z, k) {
-  orderedXl <- sortObj(xl, z)
-  n <- ncol(orderedXl)
-  classes <- orderedXl[1:k, n] 
-  counts <- table(classes) # Таблица встречаемости каждого класса среди k ближайших соседей объекта
-  class <- names(which.max(counts)) # Наиболее часто встречаемый класс
-  return (class)
+  ordered_xl <- sort_objects_by_dist(xl, z)
+  weights <- w.kwnn(1:nrow(ordered_xl), k, q)
+  names(weights) <- ordered_xl[, ncol(ordered_xl)]
+  sum_by_class <- sapply(unique(sort(names(weights))), function(class, weights) sum(weights[names(weights) == class]), weights)
+  names(which.max(sum_by_class))
 }
 
 classifyZ <- function(xl, k, q) { 

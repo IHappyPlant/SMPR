@@ -3,7 +3,6 @@ get_distances <- function(xl, z) apply(xl[,1:(ncol(xl)-1)], 1, distance, z)
 sort_objects_by_dist <- function(xl, z) xl[order(get_distances(xl, z)),]
 
 kNN <- function(xl, z, k) names(which.max(table(sort_objects_by_dist(xl, z)[1:k, ncol(xl)])))
-
 kNN_OnSortedXl <- function(orderedXl, k) names(which.max(table(orderedXl[1:k, ncol(orderedXl)])))
   
 lOO <- function(xl) { # Метод скользящего контроля для подбора оптимального k
@@ -12,11 +11,10 @@ lOO <- function(xl) { # Метод скользящего контроля дл�
   lOOForK <- rep.int(0, l-1)
   for (i in 1:l) {
     orderedXl <- sort_objects_by_dist(xl[-i, ], xl[i, 1:(n-1)]) # Выборка без i-го объекта, отсортированная относительно него
-    for (k in 1:(l-1)) lOOForK[k] <- lOOForK[k] + (kNN_OnSortedXl(orderedXl, k) != xl[i, n]) / l
+    lOOForK <- lOOForK + sapply(c(1:(l-1)), function(v) (kNN_OnSortedXl(orderedXl, v) != xl[i, n]) / l)
   }
   lOOForK # Вектор зависимости LOO от k
 }
-
 getOptimalK <- function(lOOForK) which.min(lOOForK)
 
 buildIrisClassMap <- function(xl, k) { 
