@@ -319,3 +319,4 @@
 2. Если признаки коррелированы, то есть матрица ковариации не диагональна, то линии уровня имеют форму эллипсоидов, наклонённых относительно осей координат.
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/level_lines_a12_plus.png)  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/level_lines_a12_minus.png)  
+Сама программу, рисующая линии уровня представлена [здесь](https://ihappyplant.shinyapps.io/level_lines/)
