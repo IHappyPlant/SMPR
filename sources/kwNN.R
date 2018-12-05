@@ -59,14 +59,15 @@ drawPlots <- function(k, q, lOOForK, classifiedObjects) {
   lines(lOOForK, col = "red")  
 }
 
-main <- function() {
+#main <- function() {
   xl <- iris[, 3:5]
   lOOForK <- lOO(xl)
   opt_par <- getOptimalPar(lOOForK)
+  print(opt_par)
   k <- opt_par[1]
   q <- opt_par[2] / 10
   classifiedObjects <- getIrisClassMap(xl, k, q)
   drawPlots(k, q, lOOForK, classifiedObjects)
-}
+#}
 
 main()
