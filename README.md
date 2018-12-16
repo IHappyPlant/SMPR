@@ -5,6 +5,7 @@
 
 
 
+
 # Теория машинного обучения
 
 ## Навигация
@@ -392,5 +393,36 @@ get_sigma <- function(xm, mu) {
 Приложение, реализующее алгоритм, представлено [здесь](https://ihappyplant.shinyapps.io/bayes_classifiers/).
 
 ### Линейный дискриминант Фишера
+ЛДФ является частным случаем подстановочного алгоритма, для случая, когда матрицы ковариации всех классов равны.  
+В этом случае матрицу ковариации можно восстановить для всех классов сразу, по формуле:
+![](http://latex.codecogs.com/gif.latex?%5CSigma%28x%2C%20%5Cmu%29%20%3D%20%5Cfrac%7B1%7D%7Bm%20-%20%7CY%7C%7D%5Csum%5Em_%7Bi%3D1%7D%28x_i-%5Chat%20%5Cmu_%7Byi%7D%29%28x_i-%5Chat%20%5Cmu_%7Byi%7D%29%5ET)  
+где *|Y|* - мощность множества классов, *x* - объекты выборки.
+Программная реализация:
+````r
+get_sigma <- function(xm, mu) {
+  sum <- 0
+  m <- nrow(xm)
+  for (i in 1:(m/2)) {
+    xi <- matrix(c(xm[i,1], xm[i,2]), 1, 2)
+    sum <- sum + t(xi - mu[1,]) %*% (xi - mu[1,])
+  }
+  for (i in (m/2+1):m) {
+    xi <- matrix(c(xm[i,1], xm[i,2]), 1, 2)
+    sum <- sum + t(xi - mu[2,]) %*% (xi - mu[2,])
+  }
+  sum / (m-2)
+}
+````
+
+Уравнение разделяющей поверхности упрощается, и превращается из уравнения кривой второго порядка в уравнение прямой.
+
+Примеры работы алгоритма:
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/ldf1.PNG)
+
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/ldf2.PNG)
+
+Приложение, реализующее алгоритм, представлено [здесь](https://ihappyplant.shinyapps.io/bayes_classifiers/).
+
+
 
 [В начало](#теория-машинного-обучения)
