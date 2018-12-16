@@ -4,6 +4,7 @@
 
 
 
+
 # Теория машинного обучения
 
 ## Навигация
@@ -51,8 +52,9 @@
 При реализации алгоритма, в качестве обучающей выборки использовалась выборка ирисов Фишера. В качестве признаков объектов использовались значения длины и ширины лепестка. Значение *k* подбиралось по *LOO*.
 
 Алгоритм:
-
-    kNN <- function(xl, z, k) names(which.max(table(sort_objects_by_dist(xl, z)[1:k, ncol(xl)])))
+````r
+kNN <- function(xl, z, k) names(which.max(table(sort_objects_by_dist(xl, z)[1:k, ncol(xl)])))
+````
 где *xl* - обучающая выборка.
 
 ![kNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kNN_plot.png)
@@ -73,15 +75,16 @@
 #### Реализация
 При реализации использовалась та же выборка ирисов Фишера. Значения *k* и *q* подбирались по *LOO*  
 Алгоритм:
-
-    w.kwnn <- function(i, k, q) (i <= k) * q^i # Весовая функция
-    kwNN <- function(xl, z, k, q) {
-      ordered_xl <- sort_objects_by_dist(xl, z)
-      weights <- w.kwnn(1:nrow(ordered_xl), k, q)
-      names(weights) <- ordered_xl[, ncol(ordered_xl)]
-      sum_by_class <- sapply(unique(sort(names(weights))), function(class, weights) sum(weights[names(weights) == class]), weights)
-      names(which.max(sum_by_class))
-	}
+````r
+w.kwnn <- function(i, k, q) (i <= k) * q^i # Весовая функция
+kwNN <- function(xl, z, k, q) {
+  ordered_xl <- sort_objects_by_dist(xl, z)
+  weights <- w.kwnn(1:nrow(ordered_xl), k, q)
+  names(weights) <- ordered_xl[, ncol(ordered_xl)]
+  sum_by_class <- sapply(unique(sort(names(weights))), function(class, weights) sum(weights[names(weights) == class]), weights)
+  names(which.max(sum_by_class))
+}
+````
 где *xl* - обучающая выборка.
 
 ![kwNN.png](https://github.com/IHappyPlant/RProjects/blob/master/img/kwNN_plot.png) 
@@ -119,27 +122,28 @@
 Где ![](http://latex.codecogs.com/gif.latex?r%3D%5Cfrac%7B%5Crho%28z%2C%20x_%7Bi%7D%29%7D%7Bh%7D)
 
 #### Программная реализация алгоритма:
-
-    parzen <- function(xl, h, distances, kernelFunction = kernel.G) {
-      # xl - выборка
-      # h - ширина окна
-      # distances - расстояния от объекта z до каждого объекта из xl 
-      # Расстояния считаются заранее, поэтому сам объект z здесь не нужен
-      # kernelFunction - используемая функция ядра. По умолчанию Гауссовское
-      l <- nrow(xl)
-      n <- ncol(xl)
-      classes <- xl[1:l, n] # Классы объектов выборки
-      weights <- table(classes) # Таблица для весов классов
-      weights[1:length(weights)] <- 0
-      for (i in 1:l) { # Для каждого объекта выборки
-        class <- xl[i, n] # Берём его класс
-        r <- distances[i] / h
-        weights[class] <- weights[class] + kernelFunction(r) # И прибавляем его вес к общему весу его класса
-      }
-      if (max(weights) != 0) # Если точке присвоились какие-нибудь веса классов (точка попала в окно)
-	    return (names(which.max(weights))) # Вернуть класс с максимальным весом
-	  return (0) # Иначе вернуть 0
-    }
+````r
+parzen <- function(xl, h, distances, kernelFunction = kernel.G) {
+  # xl - выборка
+  # h - ширина окна
+  # distances - расстояния от объекта z до каждого объекта из xl 
+  # Расстояния считаются заранее, поэтому сам объект z здесь не нужен
+  # kernelFunction - используемая функция ядра. По умолчанию Гауссовское
+  l <- nrow(xl)
+  n <- ncol(xl)
+  classes <- xl[1:l, n] # Классы объектов выборки
+  weights <- table(classes) # Таблица для весов классов
+  weights[1:length(weights)] <- 0
+  for (i in 1:l) { # Для каждого объекта выборки
+    class <- xl[i, n] # Берём его класс
+    r <- distances[i] / h
+    weights[class] <- weights[class] + kernelFunction(r) # И прибавляем его вес к общему весу его класса
+  }
+  if (max(weights) != 0) # Если точке присвоились какие-нибудь веса классов (точка попала в окно)
+    return (names(which.max(weights))) # Вернуть класс с максимальным весом
+  return (0) # Иначе вернуть 0
+}
+````
 Значение *h* подбиралось в пределах от *0.1* до *2* по *LOO*. Алгоритм тестировался на выборке ирисов Фишера для разных функций ядра:
 
 *Прямоугольное ядро:*
@@ -186,53 +190,55 @@
 6. Если число ошибок меньше заданного на шаге 1, то алгоритм завершает работу. Иначе повторяются шаги 2-6.
 
  Программная реализация метода потенциальных функций:
- 
-    pF <- function(distances, potentials, h, xl, kernelFunction = kernel.G) {
-      l <- nrow(xl)
-      n <- ncol(xl)
-      classes <- xl[, n]
-      weights <- table(classes) # Таблица для весов классов
-      weights[1:length(weights)] <- 0 # По умолчанию все веса равны нулю
-      for (i in 1:l) { # Для каждого объекта выборки
-        class <- xl[i, n] # Берется его класс
-        r <- distances[i] / h[i]
-        weights[class] <- weights[class] + potentials[i] * kernelFunction(r) # Считается его вес, и прибавляется к общему ввесу его класса
-      }
-      if (max(weights) != 0) return (names(which.max(weights))) # Если есть веса больше нуля, то вернуть класс с наибольшим весом
-      return ("") # Если точка не проклассифицировалась, то вернуть пустую строку
-    }
+````r
+pF <- function(distances, potentials, h, xl, kernelFunction = kernel.G) {
+  l <- nrow(xl)
+  n <- ncol(xl)
+  classes <- xl[, n]
+  weights <- table(classes) # Таблица для весов классов
+  weights[1:length(weights)] <- 0 # По умолчанию все веса равны нулю
+  for (i in 1:l) { # Для каждого объекта выборки
+    class <- xl[i, n] # Берется его класс
+    r <- distances[i] / h[i]
+    weights[class] <- weights[class] + potentials[i] * kernelFunction(r) # Считается его вес, и прибавляется к общему ввесу его класса
+  }
+  if (max(weights) != 0) return (names(which.max(weights))) # Если есть веса больше нуля, то вернуть класс с наибольшим весом
+  return ("") # Если точка не проклассифицировалась, то вернуть пустую строку
+}
+````
 Программная реализация алгоритма подбора ![gamma_i](http://latex.codecogs.com/gif.latex?%5Cgamma_%7Bi%7D):
-
-    getPotentials <- function(xl, h, eps, kernelFunction = kernel.G) {
-      # Получить потенциалы всех объектов выборки
-      l <- nrow(xl)
-      n <- ncol(xl)
-      potentials <- rep(0, l)
-      err <- eps + 1
-	  # Посчитаем расстояния от каждого объекта выборки до остальных
-	  distances <- matrix(0, l, l)
-	  for (i in 1:l)
-        distances[i,] <- getDistances(xl, c(xl[i, 1], xl[i, 2]))
-      # Пока число ошибок больше заданного
-      while (err > eps) {
-        while (TRUE) {
-          # Пока не получим несоответствие классов, чтобы обновить потенциалы
-          rand <- sample(1:l, 1)
-          class <- pF(distances[rand,], potentials, h, xl)
-          if (class != xl[rand, n]) {
-            potentials[rand] = potentials[rand] + 1
-            break
-          }
-        }
-        # Подсчет числа ошибок
-        err <- 0
-        for (i in 1:l) {
-          class <- pF(distances[i,], potentials, h, xl)
-          err <- err + (class != xl[i, n])
-        }
+````r
+getPotentials <- function(xl, h, eps, kernelFunction = kernel.G) {
+  # Получить потенциалы всех объектов выборки
+  l <- nrow(xl)
+  n <- ncol(xl)
+  potentials <- rep(0, l)
+  err <- eps + 1
+  # Посчитаем расстояния от каждого объекта выборки до остальных
+  distances <- matrix(0, l, l)
+  for (i in 1:l)
+    distances[i,] <- getDistances(xl, c(xl[i, 1], xl[i, 2]))
+  # Пока число ошибок больше заданного
+  while (err > eps) {
+    while (TRUE) {
+      # Пока не получим несоответствие классов, чтобы обновить потенциалы
+      rand <- sample(1:l, 1)
+      class <- pF(distances[rand,], potentials, h, xl)
+      if (class != xl[rand, n]) {
+        potentials[rand] = potentials[rand] + 1
+        break
       }
-      return (potentials)
     }
+    # Подсчет числа ошибок
+    err <- 0
+    for (i in 1:l) {
+      class <- pF(distances[i,], potentials, h, xl)
+      err <- err + (class != xl[i, n])
+    }
+  }
+  return (potentials)
+}
+````
 Алгоритм тестировался на выборке ирисов Фишера. Использовалось квартическое ядро. Радиусы потенциалов *h* для класса *setosa* были положены равными 1, так как класс далеко от остальных, а радиусы для *versicolor* и *virginica*  0.4, так как это число было оптимальным значением *h* для метода парзеновского окна.  
 Результат работы:
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/pF_plot_rand_v2.png)
@@ -272,14 +278,14 @@
 Протестируем алгоритм на выборке ирисов Фишера.  
 В качестве алгоритма классификации будем использовать kwNN(k = 20, q = 0.1)  
 Реализация функции отступа на основе kwNN:
-
-    margin <- function(xl, z, k, q, target_class) {
-      ordered_xl <- sort_objects_by_dist(xl, z) # Сортировка выборки
-      weights <- w.kwnn(1:nrow(ordered_xl), k, q) # Веса объектов выборки
-      names(weights) <- ordered_xl[, ncol(ordered_xl)]
-      sum(weights[names(weights) == target_class]) - sum(weights[names(weights) != target_class]) # Отступ
-    }
-
+````r
+margin <- function(xl, z, k, q, target_class) {
+  ordered_xl <- sort_objects_by_dist(xl, z) # Сортировка выборки
+  weights <- w.kwnn(1:nrow(ordered_xl), k, q) # Веса объектов выборки
+  names(weights) <- ordered_xl[, ncol(ordered_xl)]
+  sum(weights[names(weights) == target_class]) - sum(weights[names(weights) != target_class]) # Отступ
+}
+````
 Результат работы STOLP:  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/STOLP_plot_kwnn.png)
 На оригинальной выборке kwNN с такими параметрами отработал с 7 ошибками, а на выборке из эталонов - всего 3. Выборка эталонов составила 8 объектов, значит, выборка уменьшилась 18.75 раз.
@@ -345,3 +351,42 @@
 
 [В начало](#теория-машинного-обучения)
 ### Подстановочный (Plug-in) алгоритм
+Алгоритм относится к нормальному дискриминантному анализу и применяется для многомерных (в данном случае - для многомерного нормального) распределений.  
+Решающее правило имеет вид:
+![](http://latex.codecogs.com/gif.latex?a%28x%29%3Darg%5Cmax_%7By%5Cin%20Y%7D%5Clambda_y%5Chat%20P_y%5Chat%20p_y%28x%29), где ![](http://latex.codecogs.com/gif.latex?%5Chat%20P_y%2C%5Chat%20p_y%28x%29) - восстановленные вероятность и плотность распределения класса соответственно.  
+
+![](http://latex.codecogs.com/gif.latex?%5Chat%20%5Cmu%28x%29%20%3D%20%5Cfrac%7B1%7D%7Bm%7D%5Csum%5Em_%7Bi%3D1%7Dx_i)  
+![](http://latex.codecogs.com/gif.latex?%5Chat%20p_y%28x%29%20%3D%20N%28x%2C%20%5Cmu%2C%20%5CSigma%29%20%3D%20%5Cfrac%7B1%7D%7B%5Csqrt%28%282%5Cpi%29%5En%7C%5CSigma%7C%29%7D%5Cexp%28-%5Cfrac%7B1%7D%7B2%7D%28x-%5Cmu%29%5CSigma%5E%7B-1%7D%28x-%5Cmu%29%5ET%29)  
+где ![](http://latex.codecogs.com/gif.latex?%5CSigma) - восстановленная матрица ковариации.
+Матрица ковариации вычисляется по формуле:  
+![](http://latex.codecogs.com/gif.latex?%5CSigma%28x%2C%20%5Cmu%29%20%3D%20%5Cfrac%7B1%7D%7Bm-1%7D%5Csum%5Em_%7Bi%3D1%7D%28x_i-%5Cmu%29%28x_i-%5Cmu%29%5ET)  
+ 
+ Восстановление мат. ожидания:
+````r
+get_mu <- function(xm) colMeans(xm)
+````
+Восстановление матрицы ковариации:
+````r
+get_sigma <- function(xm, mu) {
+  sum <- 0
+  for (i in 1:nrow(xm)) {
+    xi <- matrix(c(xm[i,1], xm[i,2]), 1, 2)
+    sum <- sum + t(xi - mu) %*% (xi - mu)
+  }
+  sum / (nrow(xm)-1)
+}
+````
+Полученные матрицу ковариации и вектор мат. ожиданий подставляют в формулу плотности, которую, в свою очередь, подставляют в решающее правило. Поэтому алгоритм получил название "Подстановочный".  
+
+Алгоритм позволяет построить разделяющую кривую между классами, решив уравнение:  
+![](http://latex.codecogs.com/gif.latex?%5Clambda_1%5Chat%20P_1%5Chat%20p_1%28x%29%3D%5Clambda_2%5Chat%20P_2%20%5Chat%20p_2%28x%29)  
+Это уравнение, при раскрытии переменных, превратится в уравнение кривой второго порядка, при подстановке точек, в которое, получим разделяющую кривую между классами.
+
+Примеры работы алгоритма:
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin1.PNG)
+
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin2.PNG)
+
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin3.PNG)
+
+Приложение, реализующее алгоритм, представлено [здесь](https://ihappyplant.shinyapps.io/bayes_classifiers/).

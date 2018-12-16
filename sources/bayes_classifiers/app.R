@@ -58,10 +58,6 @@ optimal_bayes <- function(xm, input) {
     points(classified_objects[,1:(n-1)], pch = 21, col = colors[classified_objects[,n]])
   }
   
-  get_mu <- function(xm) sum(xm) / length(xm)
-  
-  get_sigma <- function(xm, mu) sum((xm - nu)^2) / (m-1)
-  
   main <- function(xm) {
     Py <- c(0.5, 0.5)
     mu <- rbind(c(input$mu11, input$mu21), c(input$mu12, input$mu22))

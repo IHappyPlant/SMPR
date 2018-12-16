@@ -5,6 +5,6 @@ account: ihappyplant
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 615476
-bundleId: 1759315
+bundleId: 1766426
 url: https://ihappyplant.shinyapps.io/bayes_classifiers/
-when: 1544647604.13449
+when: 1544954005.3301
