@@ -431,19 +431,19 @@ get_sigma <- function(xm, mu) {
 Очевидно, что подстановочный алгоритм покрывает больше случаев, и является намного более универсальным, чем ЛДФ.  
 Но ЛДФ создавался специально для работы с особыми случаями, а именно - когда матрицы ковариации классов равны.  
 
-Сравним работу Plug-in и ЛДФ на таких данных: 
+Сравним работу Plug-in и ЛДФ на таких данных:  
 *Plug-in:*
-![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf1.PNG)
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf1.PNG)  
 *ЛДФ:*
-![](https://github.com/IHappyPlant/RProjects/blob/master/img/ldf1.PNG)
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/ldf1.PNG)  
 *Plug-in:*
-![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf2.PNG)
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf2.PNG)  
 *ЛДФ:*
-![](https://github.com/IHappyPlant/RProjects/blob/master/img/ldf2.PNG)
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/ldf2.PNG)  
 *Plug-in:*
-![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf3.PNG)
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf3.PNG)  
 *ЛДФ:*
-![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf4.PNG)
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf4.PNG)  
 
 Вывод: для случая, когда матрицы ковариации классов равны, и Plug-in и ЛДФ показывают схожие результаты, что неудивительно, т. к. ЛДФ - частный случай Plug-in. Тем не менее, ЛДФ значительно проще в реализации, и требует меньше вычислительной мощности, благодаря более простой формуле. Также, в случае, когда классы накладываются друг на друга, Plug-in "ломается", а ЛДФ - нет.
 
