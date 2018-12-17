@@ -157,7 +157,7 @@ plug_in <- function(xm) {
     xy <- 2 * b1 - 2 * b2
     x <- 2 * b2 * mu2[2] - 2 * b1 * mu1[2] - 2 * a1 * mu1[1] + 2 * a2 * mu2[1]
     y <- 2 * b2 * mu2[1] + 2 * c2 * mu2[2] - 2 * b1 * mu1[1] - 2 * c1 * mu1[2]
-    f <- -a2 * mu2[1]^2 - 2 * b2 * mu2[1] * mu2[2] - c2 * mu2[2]^2 + a1 * mu1[1]^2 + 2 * b1 * mu1[1] * mu1[2] + c1 * mu1[2]^2 - log(det(sigma1)) + log(det(sigma2))
+    f <- -a2 * mu2[1]^2 - 2 * b2 * mu2[1] * mu2[2] - c2 * mu2[2]^2 + a1 * mu1[1]^2 + 2 * b1 * mu1[1] * mu1[2] + c1 * mu1[2]^2 + log(det(sigma1)) - log(det(sigma2))
     #print(c("x^2" = x2, "y^2" = y2, "xy" = xy, "x" = x, "y" = y, "1" = f))
     return (c("x^2" = x2, "y^2" = y2, "xy" = xy, "x" = x, "y" = y, "1" = f))
   }

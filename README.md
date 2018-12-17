@@ -337,7 +337,7 @@ margin <- function(xl, z, k, q, target_class) {
 Если предположить, что все признаки объектов выборки сформированы независимо, то значение функции плотности ![](http://latex.codecogs.com/gif.latex?p_%7By%7D%28x%29) для класса *y* для объекта *x* можно представить в виде ![](http://latex.codecogs.com/gif.latex?p_%7By%7D%28x%29%3Dp_%7By%7D%28%5Cxi_%7B1%7D%29*%5Cdots*p_%7By%7D%28%5Cxi_%7Bn%7D%29), где ![](http://latex.codecogs.com/gif.latex?%5Cxi_%7Bi%7D) - *i*-й признак объекта *x*. Это упрощает задачу, так как оценивать несколько одномерных плотностей легче, чем одну многомерную.  
 Однако, на практике такая ситуация встречается редко, поэтому алгоритм получил название "Наивный байесовский классификатор". Обычно он используется, как эталон при сравнении различных алгоритмов классификации.  
 Решающее правило принимает вид:  
-![](http://latex.codecogs.com/gif.latex?a%28x%29%3Darg%20%5Cmax_%7By%5Cin%20Y%7D%28%5Cln%28%5Clambda_%7By%7DP_y%29&plus;%5Csum_%7Bj%3D1%7D%5E%7Bn%7D%5Cln%28p_%7Byj%7D%28%5Cxi_j%29%29%29)
+![](http://latex.codecogs.com/gif.latex?a%28x%29%3Darg%20%5Cmax_%7By%5Cin%20Y%7D%28%5Cln%28%5Clambda_%7By%7DP_y%29&plus;%5Csum_%7Bj%3D1%7D%5E%7Bn%7D%5Cln%28p_%7Byj%7D%28%5Cxi_j%29%29%29)  
 Примеры работы алгоритма:
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/naive_bayes1.PNG)
 
