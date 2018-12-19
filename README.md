@@ -521,5 +521,5 @@ adaline.get_w <- function(w, object, class, eta)  w - c(eta) * (w %*% object - c
 Примеры работы классификатора, обученного методом стохастического градиента с применением дельта-правила:  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/adaline1.PNG)  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/adaline2.PNG)  
-Приложение, реализующее ADALINE, представлено [здесь](https://ihappyplant.shinyapps.io/linear_classifiers/).
+Приложение, реализующее ADALINE, представлено [здесь](https://ihappyplant.shinyapps.io/linear_classifiers/).  
 [В начало](#теория-машинного-обучения)
