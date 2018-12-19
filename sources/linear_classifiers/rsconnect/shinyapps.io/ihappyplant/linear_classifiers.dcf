@@ -5,6 +5,6 @@ account: ihappyplant
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 620458
-bundleId: 1773453
+bundleId: 1773802
 url: https://ihappyplant.shinyapps.io/linear_classifiers/
-when: 1545236633.35485
+when: 1545249544.48318

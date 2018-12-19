@@ -22,8 +22,7 @@ ui <- fluidPage(
     ),
     
     mainPanel(
-      plotOutput("plot"),
-      textOutput("error")
+      plotOutput("plot")
     )
   )
 )
@@ -35,19 +34,19 @@ normalize <- function(xl) {
 
 add_col_for_w0 <- function(xl) cbind(xl[,1:(ncol(xl)-1)], -1, xl[, ncol(xl)])
 
-loss.S <- function(m) 2 / (1 + exp(m))
-loss.S.d <- function(m) (-2 * exp(m)) / (1 + exp(m))^2
 loss.Q <- function(m) (1-m)^2
-loss.Q.d <- function(m) 2*m-2
 loss.L <- function(m) max(-m,0)
+loss.Log <- function(m) log2(1 + exp(-m))
+sigmoid <- function(z) 1 / (1 + exp(-z))
 
 adaline.get_w <- function(w, object, class, eta)  w - c(eta) * (w %*% object - class) %*% object
 hebb.get_w <- function(w, object, class, eta) w + eta * object * class
+logistic.get_w <- function(w, object, class, eta) w + eta * object * class * sigmoid(c(w %*% object) * class)
 
-gradient <- function(xl, eta, lambda, method, loss_function) {
+gradient <- function(xl, eta, lambda, rule, loss_function, method) {
   l <- nrow(xl)
   n <- ncol(xl)
-  w <- runif(n-1, -1/(2*n), 1/(2*n))
+  w <- runif(n-1, -1/(2*(n-1)), 1/(2*(n-1)))
   objects <- xl[,-n]
   classes <- xl[, n]
   q <- 0
@@ -61,75 +60,23 @@ gradient <- function(xl, eta, lambda, method, loss_function) {
     eps <- loss_function(w %*% objects[rand,] * classes[rand])
     
     eta <- 1 / sqrt(cnt)
-    w <- method(w, objects[rand,], classes[rand], eta)
+    if (method != "hebb")
+      w <- rule(w, objects[rand,], classes[rand], eta)
+    else if (w %*% objects[rand,] * classes[rand] < 0) {
+      w <- rule(w, objects[rand,], classes[rand], eta)
+    }
     q_prev <- q
     q <- (1 - lambda) * q + lambda * eps
     if (abs(q_prev - q) <= 1e-5) break
-    
     else if (cnt == 30000) { print("exit by cnt"); break; }
   }
   w
 }
 
-sg.ADALINE <- function(xl, eta = 1, lambda = 1/6)
-{
-  l <- dim(xl)[1]
-  n <- dim(xl)[2] - 1
-  w <- c(1/2, 1/2, 1/2)
-  iterCount <- 0
-  ## initialize Q
-  Q <- 0
-  for (i in 1:l)
-  {
-    ## calculate the scalar product <w,x>
-    wx <- sum(w * xl[i, 1:n])
-    ## calculate a margin
-    margin <- wx * xl[i, n + 1]
-    Q <- Q + loss.Q(margin)
-  }
-  repeat
-  {
-    ## calculate the margins for all objects of the
-    margins <- array(dim = l)
-    for (i in 1:l)
-    {
-      xi <- xl[i, 1:n]
-      yi <- xl[i, n + 1]
-      margins[i] <- crossprod(w, xi) * yi
-    }
-    ## select the error objects
-    errorIndexes <- which(margins <= 0)
-    if (length(errorIndexes) > 0)
-    {
-      # select the random index from the errors
-      i <- sample(errorIndexes, 1)
-      iterCount <- iterCount + 1
-      xi <- xl[i, 1:n]
-      yi <- xl[i, n + 1]
-      ## calculate the scalar product <w,xi>
-      wx <- sum(w * xi)
-      ## make a gradient step
-      margin <- wx * yi
-      ## calculate an error
-      ex <- loss.Q(margin)
-      eta <- 1 / sqrt(sum(xi * xi))
-      w <- w - eta * (wx - yi) * xi
-      ## Calculate a new Q
-      Qprev <- Q
-      Q <- (1 - lambda) * Q + lambda * ex
-    }
-    else
-    {
-      break
-    }
-  }
-  return (w)
-}
 
 adaline <- function(xl, new_xl) {
-  w <- gradient(new_xl, 1, 1/6, adaline.get_w, loss.Q)
+  w <- gradient(new_xl, 1, 1/6, adaline.get_w, loss.Q, "adaline")
   n <- ncol(xl)
-  l <- nrow(xl)
   colors <- c("1" <- "red", "2" = "blue")
   plot(xl[,1:(n-1)], pch = 21, col = colors[xl[,n]], bg = colors[xl[,n]], asp = 1)
   x <- seq(-20, 20, length.out = 100)
@@ -139,9 +86,8 @@ adaline <- function(xl, new_xl) {
 }
 
 perceptron <- function(xl, new_xl) {
-  w <- gradient(new_xl, 1, 1/6, hebb.get_w, loss.L)
+  w <- gradient(new_xl, 1, 1/6, hebb.get_w, loss.L, "hebb")
   n <- ncol(xl)
-  l <- nrow(xl)
   colors <- c("1" <- "red", "2" = "blue")
   plot(xl[,1:(n-1)], pch = 21, col = colors[xl[,n]], bg = colors[xl[,n]], asp = 1)
   x <- seq(-20, 20, length.out = 100)
@@ -150,9 +96,37 @@ perceptron <- function(xl, new_xl) {
   contour(x, y, z, levels = 0, add = T, drawlabels = F, lwd = 3, col = "gold")
 }
 
+logistic <- function(xl, new_xl) {
+  w <- gradient(new_xl, 1, 1/6, logistic.get_w, loss.Log, "logistic")
+  n <- ncol(xl)
+  colors <- c("1" <- "red", "2" = "blue")
+  plot(xl[,1:(n-1)], pch = 21, col = colors[xl[,n]], bg = colors[xl[,n]], asp = 1)
+  x <- seq(-20, 20, length.out = 100)
+  y <- seq(-20, 20, length.out = 100)
+  z <- outer(x, y, function(x, y) w[1] * x + w[2] * y + w[3])
+  contour(x, y, z, levels = 0, add = T, drawlabels = F, lwd = 3, col = "orchid")
+}
+
+compare <- function(xl, new_xl) {
+  n <- ncol(xl)
+  x <- seq(-20, 20, length.out = 100)
+  y <- seq(-20, 20, length.out = 100)
+  w <- gradient(new_xl, 1, 1/6, adaline.get_w, loss.Q, "adaline")
+  z1 <- outer(x, y, function(x, y) w[1] * x + w[2] * y + w[3])
+  w <- gradient(new_xl, 1, 1/6, hebb.get_w, loss.L, "hebb")
+  z2 <- outer(x, y, function(x, y) w[1] * x + w[2] * y + w[3])
+  w <- gradient(new_xl, 1, 1/6, logistic.get_w, loss.Log, "logistic")
+  z3 <- outer(x, y, function(x, y) w[1] * x + w[2] * y + w[3])
+  colors <- c("1" <- "red", "2" = "blue")
+  plot(xl[,1:(n-1)], pch = 21, col = colors[xl[,n]], bg = colors[xl[,n]], asp = 1)
+  contour(x, y, z1, levels = 0, add = T, drawlabels = F, lwd = 3, col = "navy")
+  contour(x, y, z2, levels = 0, add = T, drawlabels = F, lwd = 3, col = "gold")
+  contour(x, y, z3, levels = 0, add = T, drawlabels = F, lwd = 3, col = "orchid")
+  legend("bottomright", c("ADALINE", "Персептрон", "Логистич. регрессия"), pch = c("l","l","l"), col = c("navy", "gold", "orchid"))
+}
+
 server <- function(input, output) {
   output$plot = renderPlot({
-    output$error = renderText("")
     n <- input$n
     xl11 <- rnorm(n/2, input$mu11, input$sigma11)
     xl12 <- rnorm(n/2, input$mu21, input$sigma21)
@@ -168,6 +142,8 @@ server <- function(input, output) {
    
     if (input$classifiers == 0) adaline(xl, n_xl)
     else if (input$classifiers == 1) perceptron(xl, n_xl)
+    else if (input$classifiers == 2) logistic(xl, n_xl)
+    else if (input$classifiers == 4) compare(xl, n_xl)
   })
   
 }
