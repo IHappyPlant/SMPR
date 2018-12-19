@@ -8,6 +8,7 @@
 
 
 
+
 # Теория машинного обучения
 
 ## Навигация
@@ -521,5 +522,14 @@ adaline.get_w <- function(w, object, class, eta)  w - c(eta) * (w %*% object - c
 Примеры работы классификатора, обученного методом стохастического градиента с применением дельта-правила:  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/adaline1.PNG)  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/adaline2.PNG)  
-Приложение, реализующее ADALINE, представлено [здесь](https://ihappyplant.shinyapps.io/linear_classifiers/).  
+Приложение, реализующее ADALINE, представлено [здесь](https://ihappyplant.shinyapps.io/linear_classifiers/).
+
+### Правило Хебба (персептрон Розенблатта)
+Этот принцип обучения классификатора основан на принципах нейрофизиологии. Предполагается, что если нейрон угадывает правильный ответ, то его синапсы усиливаются, а если он часто ошибается, или вообще не используется, то синапсы начинают затухать.  
+В приложении к этого к классификатору роль синапсов играет вектор *w*, и правило его обновления формализуется следующим образом: ![](http://latex.codecogs.com/gif.latex?if%20%28%5Clangle%20w%2Cx_i%5Crangle%20y_i%29%20%3C%200%20%5C%3Bthen%20%5C%3B%20w%3A%3Dw&plus;%5Ceta%20x_i%20y_i)  
+Функция потерь полагается кусочно-линейной: ![](http://latex.codecogs.com/gif.latex?%5Cpounds%20%28M%29%3D%28-M%29_%7B&plus;%7D)  
+Примеры работы персептрона:  
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/perceptron1.PNG)  
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/perceptron2.PNG)  
+Приложение, реализующее метод, представлено [здесь](https://ihappyplant.shinyapps.io/linear_classifiers/).  
 [В начало](#теория-машинного-обучения)

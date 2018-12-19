@@ -39,8 +39,10 @@ loss.S <- function(m) 2 / (1 + exp(m))
 loss.S.d <- function(m) (-2 * exp(m)) / (1 + exp(m))^2
 loss.Q <- function(m) (1-m)^2
 loss.Q.d <- function(m) 2*m-2
+loss.L <- function(m) max(-m,0)
 
 adaline.get_w <- function(w, object, class, eta)  w - c(eta) * (w %*% object - class) %*% object
+hebb.get_w <- function(w, object, class, eta) w + eta * object * class
 
 gradient <- function(xl, eta, lambda, method, loss_function) {
   l <- nrow(xl)
@@ -136,6 +138,18 @@ adaline <- function(xl, new_xl) {
   contour(x, y, z, levels = 0, add = T, drawlabels = F, lwd = 3, col = "navy")
 }
 
+perceptron <- function(xl, new_xl) {
+  w <- gradient(new_xl, 1, 1/6, hebb.get_w, loss.L)
+  n <- ncol(xl)
+  l <- nrow(xl)
+  colors <- c("1" <- "red", "2" = "blue")
+  plot(xl[,1:(n-1)], pch = 21, col = colors[xl[,n]], bg = colors[xl[,n]], asp = 1)
+  x <- seq(-20, 20, length.out = 100)
+  y <- seq(-20, 20, length.out = 100)
+  z <- outer(x, y, function(x, y) w[1] * x + w[2] * y + w[3])
+  contour(x, y, z, levels = 0, add = T, drawlabels = F, lwd = 3, col = "gold")
+}
+
 server <- function(input, output) {
   output$plot = renderPlot({
     output$error = renderText("")
@@ -153,6 +167,7 @@ server <- function(input, output) {
     n_xl <- add_col_for_w0(n_xl)
    
     if (input$classifiers == 0) adaline(xl, n_xl)
+    else if (input$classifiers == 1) perceptron(xl, n_xl)
   })
   
 }
