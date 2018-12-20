@@ -46,27 +46,31 @@ logistic.get_w <- function(w, object, class, eta) w + eta * object * class * sig
 gradient <- function(xl, eta, lambda, rule, loss_function, method) {
   l <- nrow(xl)
   n <- ncol(xl)
-  w <- runif(n-1, -1/(2*(n-1)), 1/(2*(n-1)))
+  w <- runif(n-1, -1/(2*(n-1)), 1/(2*(n-1))) # Инициализация w случайными значениями
   objects <- xl[,-n]
   classes <- xl[, n]
   q <- 0
-  for (i in 1:l) q <- q + loss_function(w %*% objects[i,] * classes[i])
+  for (i in 1:l) q <- q + loss_function(w %*% objects[i,] * classes[i]) # Начальное приближение q
   
   cnt <- 0
   while (T) {
-    cnt <- cnt + 1
+    cnt <- cnt + 1 # Счётчик итераций
     
-    rand <- sample(1:l, 1)
-    eps <- loss_function(w %*% objects[rand,] * classes[rand])
+    rand <- sample(1:l, 1) # Случайный объект из выборки
+    eps <- loss_function(w %*% objects[rand,] * classes[rand]) # Ошибка алгоритма на объекте
     
-    eta <- 1 / sqrt(cnt)
+    eta <- 1 / sqrt(cnt) # Пересчёт темпа обучения
+    
+    # Обновление весов
     if (method != "hebb")
       w <- rule(w, objects[rand,], classes[rand], eta)
-    else if (w %*% objects[rand,] * classes[rand] < 0) {
+    else if (w %*% objects[rand,] * classes[rand] < 0)
       w <- rule(w, objects[rand,], classes[rand], eta)
-    }
+    
+    # Пересчёт q
     q_prev <- q
     q <- (1 - lambda) * q + lambda * eps
+
     if (abs(q_prev - q) <= 1e-5) break
     else if (cnt == 30000) { print("exit by cnt"); break; }
   }
