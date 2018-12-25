@@ -10,6 +10,7 @@
 
 
 
+
 # Теория машинного обучения
 
 ## Навигация
@@ -481,33 +482,43 @@ get_sigma <- function(xm, mu) {
 
 Программная реализация:
 ````r
-gradient <- function(xl, eta, lambda, rule, loss_function, method) {
+gradient <- function(xl, eta, lambda, rule, loss_function, eps_q, stop_by_margins) {
   l <- nrow(xl)
   n <- ncol(xl)
-  w <- runif(n-1, -1/(2*n), 1/(2*n))
+  w <- matrix(c(runif(n-1, -1/(2*(n-1)), 1/(2*(n-1)))), 1, 3) # Инициализация w случайными значениями
   objects <- xl[,-n]
   classes <- xl[, n]
-  q <- 0
-  for (i in 1:l) q <- q + loss_function(w %*% objects[i,] * classes[i])
-  
+  q <- sum(sapply(1:l, function(i) loss_function(margin(w, objects[i,], classes[i])))) # Начальная инициализация q
+  q_full <- matrix(q, 1, 1)
   cnt <- 0
   while (T) {
-    cnt <- cnt + 1
+    cnt <- cnt + 1 # Счётчик итераций
+    margins <- sapply(1:l, function(i) margin(w[cnt,], objects[i,], classes[i]))
+    errors <- which(margins < 0)
     
-    rand <- sample(1:l, 1)
-    eps <- loss_function(w %*% objects[rand,] * classes[rand])
+    if (length(errors) == 0 && stop_by_margins == T) break;
     
-    eta <- 1 / sqrt(cnt)
-    if (method != "hebb")
-      w <- rule(w, objects[rand,], classes[rand], eta)
-    else if (w %*% objects[rand,] * classes[rand] < 0) {
-      w <- rule(w, objects[rand,], classes[rand], eta)
-    }
+    if (length(errors) > 0) rand <- sample(errors, 1)
+    else rand <- sample(1:l, 1)
+    
+    eps <- loss_function(margin(w[cnt,], objects[rand,], classes[rand])) # Ошибка алгоритма на объекте
+    
+    eta <- 1 / (objects[rand,] %*% objects[rand,])^2 # Пересчёт темпа обучения
+    if (length(errors) == 0) eta <- eta / 2
+    
+    # Обновление весов
+    w <- rbind(w, rule(w[cnt,], objects[rand,], classes[rand], eta))
+    
+    # Пересчёт q
     q_prev <- q
     q <- (1 - lambda) * q + lambda * eps
-    if (abs(q_prev - q) <= 1e-5) break
-    else if (cnt == 30000) { print("exit by cnt"); break; }
+    q_full <- rbind(q_full, q)
+    
+    if (abs(q_prev - q) / max(q_prev, q) <= eps_q) { print("exit by q"); break; }
+    else if (cnt == 20000) { print("exit by cnt"); break; }
+    
   }
+  w <- cbind(w, q_full)
   w
 }
 ````
@@ -540,12 +551,26 @@ adaline.get_w <- function(w, object, class, eta)  w - c(eta) * (w %*% object - c
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/hebb2.PNG)  
 Приложение, реализующее метод, представлено [здесь](https://ihappyplant.shinyapps.io/linear_classifiers/).  
 ### Логистическая регрессия
-Является одновременно линейным и байесовским классификатором. Использует логарифмическую функцию потерь: ![](http://latex.codecogs.com/gif.latex?%5Cpounds%28M%29%3D%5Clog_2%281&plus;e%5E%7B-M%7D%29).
-Правило обновления весов: ![](http://latex.codecogs.com/gif.latex?w%3Dw&plus;%5Ceta%20x_iy_i%5Csigma%28%5Clangle%20w%2Cx_i%5Crangle%20y_i%29), где ![](http://latex.codecogs.com/gif.latex?%5Csigma%28z%29%3D%5Cfrac%7B1%7D%7B1&plus;e%5E%7B-z%7D%7D) - сигмоидная функция.  
+Является одновременно линейным и байесовским классификатором. Использует логарифмическую (логистическую) функцию потерь: ![](http://latex.codecogs.com/gif.latex?%5Cpounds%28M%29%3D%5Clog_2%281&plus;e%5E%7B-M%7D%29).  
+Алгоритм назван так потому, что обычно для его обучения применяется не метод стохастического градиента, а метод Ньютона-Рапсона, в котором решается несколько задач восстановления регрессии.
+Правило обновления весов: ![](http://latex.codecogs.com/gif.latex?w%3Dw&plus;%5Ceta%20x_iy_i%5Csigma%28%5Clangle%20w%2Cx_i%5Crangle%20y_i%29), где ![](http://latex.codecogs.com/gif.latex?%5Csigma%28z%29%3D%5Cfrac%7B1%7D%7B1&plus;e%5E%7B-z%7D%7D) - сигмоидная функция. С вероятностной точки зрения, ![](http://latex.codecogs.com/gif.latex?%5Csigma%28z%29) вычисляет апостериорную веростность ![](http://latex.codecogs.com/gif.latex?P%28y%7Cx%29).  
 Пример классификации методом логистической регрессии:  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/logistic1.PNG)  
-Приложение, реализующее метод логистической регрессии, представлено [здесь](https://ihappyplant.shinyapps.io/linear_classifiers/)
+Достоинства метода:  
+1. Как правило, даёт более качественный результат по сравнению с ЛДФ, т. к. основано на менее жестких предположениях, а так же по сравнению с  ADALINE и правилом Хебба, т. к. использует более плавную функцию потерь.  
+2. Возможность оценивания апостериорной вероятности.  
+
+Недостатки метода:  
+1. Если не выполняются предположения теоремы, то качество работы может ухудшиться.  
+
+Приложение, реализующее метод логистической регрессии, представлено [здесь](https://ihappyplant.shinyapps.io/linear_classifiers/)  
 
 ### Сравнение линейных классификаторов
+Сравним работу всех трёх вышеприведённых классификаторов. Не будем иллюстрировать процесс схождения, чтобы не перегружать картинку, покажем только конечный результат:  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/linear_all1.PNG)  
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/linear_all2.PNG)  
+Вывод: ADALINE и Логистическая регрессия выигрывают в точности у правила Хебба, когда выборка линейно разделима. Но когда выборка плохо разделима, или не разделима, ADALINE проигрывает Логистической регрессии и правилу Хебба. Следовательно, алгоритм классификации для конкретной задачи в зависимости от исходных данных.  
+
+### Support Vector Machine (метод опорных векторов)
+
 [В начало](#теория-машинного-обучения)
