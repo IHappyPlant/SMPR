@@ -556,6 +556,7 @@ adaline.get_w <- function(w, object, class, eta)  w - c(eta) * (w %*% object - c
 Правило обновления весов: ![](http://latex.codecogs.com/gif.latex?w%3Dw&plus;%5Ceta%20x_iy_i%5Csigma%28%5Clangle%20w%2Cx_i%5Crangle%20y_i%29), где ![](http://latex.codecogs.com/gif.latex?%5Csigma%28z%29%3D%5Cfrac%7B1%7D%7B1&plus;e%5E%7B-z%7D%7D) - сигмоидная функция. С вероятностной точки зрения, ![](http://latex.codecogs.com/gif.latex?%5Csigma%28z%29) вычисляет апостериорную веростность ![](http://latex.codecogs.com/gif.latex?P%28y%7Cx%29).  
 Пример классификации методом логистической регрессии:  
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/logistic1.PNG)  
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/logistic2.PNG)  
 Достоинства метода:  
 1. Как правило, даёт более качественный результат по сравнению с ЛДФ, т. к. основано на менее жестких предположениях, а так же по сравнению с  ADALINE и правилом Хебба, т. к. использует более плавную функцию потерь.  
 2. Возможность оценивания апостериорной вероятности.  
