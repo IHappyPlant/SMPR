@@ -124,7 +124,7 @@ perceptron <- function(xl, show_iter, show_q, eps_q, stop_by_margins) {
   points(xl[,1:(n-2)], pch = 21, col = colors[xl[,n]+2], bg = colors[xl[,n]+2])
 }
 
-logistic <- function(xl, show_iter, show_q, eps_q, stop_by_margins) {
+logistic <- function(xl, show_iter, show_q, eps_q, stop_by_margins, map) {
   w <- gradient(xl, 1, 1/6, logistic.get_w, loss.Log, eps_q, stop_by_margins)
   q <- w[,ncol(w)]
   n <- ncol(xl)
