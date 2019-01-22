@@ -170,6 +170,7 @@ solve_the_problem <- function(xl, r = 0.3, delta = 1e-8, n) {
   l <- nrow(xl)
   first_class <- xl[which(xl[,3] == 1),]
   second_class <- xl[which(xl[,3] == 2),]
+  print(first_class)
   theta1 <- EM_seq(first_class, n[1], r, delta)
   theta2 <- EM_seq(second_class, n[2], r, delta)
   k1 <- nrow(theta1) / 2

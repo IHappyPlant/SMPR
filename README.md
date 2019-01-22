@@ -1,3 +1,4 @@
+
 # Теория машинного обучения
 
 ## Навигация
@@ -557,6 +558,11 @@ EM <- function(xl, k, theta, delta, w) {
 Алгоритм классификации имеет вид: ![](http://latex.codecogs.com/gif.latex?a%28x%29%20%3D%20%5Carg%5Cmax_%7By%5Cin%20Y%7D%5Clambda_yP_y%5Csum_%7Bj%3D1%7D%5E%7Bk_y%7Dw_%7Byj%7Dp_%7Byj%7D%28x%29)  
 Алгоритм состоит из трёх этапов: на первом вычисляются функции правдоподобия для всех компонент всех классов. На втором происходит умножение каждой функции правдоподобия на вероятность своей компоненты ![](http://latex.codecogs.com/gif.latex?w_%7Byj%7D) и суммирование по классам. На третьем этапе происходит домножение полученных сумм на соответствующие ![](http://latex.codecogs.com/gif.latex?P_y) и ![](http://latex.codecogs.com/gif.latex?%5Clambda_y), сравнение полученных выражений и возврат ![](http://latex.codecogs.com/gif.latex?%5Carg%5Cmax_%7By%20%5Cin%20Y%7D)  
 Примеры работы алгоритма:  
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/EM_plot1.PNG)  
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/EM_plot2.PNG)  
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/EM_plot3.PNG)  
+![](https://github.com/IHappyPlant/RProjects/blob/master/img/EM_plot4.PNG)  
+Приложение, реализующее алгоритм, представлено [здесь](https://ihappyplant.shinyapps.io/em_algorithm/)
 
 
 ## Линейные алгоритмы классификации
