@@ -1,5 +1,6 @@
 library(shiny)
 library(kernlab)
+library(MASS)
 
 ui <- fluidPage(
   
@@ -8,7 +9,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       fluidRow(
-        column(12, radioButtons("classifiers", "Классификатор", c("ADALINE" = 0, "Правило Хебба" = 1, "Логистич. регрессия" = 2, "SVM" = 3, "Все сразу" = 4), selected = 0, inline = T), style = "text-align: center"),
+        column(12, radioButtons("classifiers", "Классификатор", c("ADALINE" = 0, "Правило Хебба" = 1, "Логистич. регрессия" = 2, "SVM" = 3, "Все сразу" = 4), selected = 3, inline = T), style = "text-align: center"),
         column(6, checkboxInput("show_iter", "Показывать итерации", T)), column(6, checkboxInput("show_q", "Показывать изменение Q", T)),
         column(12, selectInput("eps_q", "Критерий стабилизации Q", c(0.00001, 0.0001, 0.001, 0.01, 0.1), 0.0001)),
         column(12, "Особые критерии останова", style = "text-align: center;"),
@@ -142,13 +143,33 @@ logistic <- function(xl, show_iter, show_q, eps_q, stop_by_margins, map) {
 
 svm <- function(xl, c = 1) {
   n <- ncol(xl)
-  colnames(xl) <- c("First", "Second", "Const", "Class")
+  colnames(xl) <- c("First", "Second", "Class")
   
-  objects <- xl[,1:(n-2)]
+  objects <- xl[,-n]
   classes <- xl[,n]
   svp <- ksvm(x = objects,y = classes, type="C-svc", kernel = "vanilladot", C = c)
   print(svp)
+  b <- b(svp)
+  w <- colSums(coef(svp)[[1]] * objects[SVindex(svp),])
+  margins <- sapply(1:nrow(objects), function(i) (w %*% objects[i,] - b) * classes[i])
+  min_margin_index <- which.min(margins)
+  a <- 1/(w[1]*objects[min_margin_index,1] + w[2]*objects[min_margin_index,2] - b)
+  w <- w * a
+  b <- b * a
+  norm <- sqrt(w%*%w)
+  margins <- sapply(1:nrow(objects), function(i) (w %*% objects[i,] - b) * classes[i])
+  print(margins)
+  print(w)
+  
   plot(svp, data = objects)
+  abline(a = b/w[1], b = -w[2]/w[1], lwd = 3)
+  abline(a = b/w[1] + 1/norm, b = -w[2]/w[1], lty = 2, lwd = 2)
+  abline(a = b/w[1] - 1/norm, b = -w[2]/w[1], lty = 2, lwd = 2)
+  
+  # plot(objects, pch = classes + 2, asp = 1)
+  # abline(a = b/w[2], b = -w[1]/w[2], lwd = 3)
+  # abline(a = b/w[2] + 1/norm, b = -w[1]/w[2])
+  # abline(a = b/w[2] - 1/norm, b = -w[1]/w[2])
 }
 
 compare <- function(xl, show_iter, eps_q, stop_by_margins) {
@@ -175,20 +196,24 @@ compare <- function(xl, show_iter, eps_q, stop_by_margins) {
 
 server <- function(input, output) {
   output$ui <- renderUI({
-    if (input$classifiers == 3) sliderInput("c", "C", 1, 10, 1, 1)
+    if (input$classifiers == 3) sliderInput("c", "C", 1, 1001, 1, 100)
     else column(12)
   })
   
   output$plot = renderPlot({
     n <- input$n
-    xl11 <- rnorm(n/2, input$mu11, input$sigma11)
-    xl12 <- rnorm(n/2, input$mu21, input$sigma21)
-    xl21 <- rnorm(n/2, input$mu12, input$sigma12)
-    xl22 <- rnorm(n/2, input$mu22, input$sigma22)
-    tmp1 <- cbind(xl11, xl12)
-    tmp2 <- cbind(xl21, xl22)
-    xl <- rbind(cbind(tmp1, 1), cbind(tmp2, -1))
-    colnames(xl) <- c("First", "Second", "Class")
+    # xl11 <- rnorm(n/2, input$mu11, input$sigma11)
+    # xl12 <- rnorm(n/2, input$mu21, input$sigma21)
+    # xl21 <- rnorm(n/2, input$mu12, input$sigma12)
+    # xl22 <- rnorm(n/2, input$mu22, input$sigma22)
+    # tmp1 <- cbind(xl11, xl12)
+    # tmp2 <- cbind(xl21, xl22)
+    # xl <- rbind(cbind(tmp1, 1), cbind(tmp2, -1))
+    # colnames(xl) <- c("First", "Second", "Class")
+    
+    xl1 <- mvrnorm(n/2, c(input$mu11, input$mu21), matrix(c(input$sigma11, 0, 0, input$sigma21), 2, 2))
+    xl2 <- mvrnorm(n/2, c(input$mu12, input$mu22), matrix(c(input$sigma12, 0, 0, input$sigma22), 2, 2))
+    xl <- rbind(cbind(xl1, 1), cbind(xl2, -1))
     
     n_xl <- normalize(xl)
     n_xl <- add_col_for_w0(n_xl)
@@ -204,7 +229,7 @@ server <- function(input, output) {
     else if (input$classifiers == 3) { 
       if (!is.null(input$c)) c <- input$c
       else c <- 1
-      svm(n_xl, c) 
+      svm(n_xl[,-(ncol(n_xl)-1)], c) 
     }
     else if (input$classifiers == 4) compare(n_xl, show_iter, eps_q, stop_by_margins)
   })

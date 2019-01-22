@@ -1,17 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Теория машинного обучения
 
 ## Навигация
@@ -457,6 +443,120 @@ get_sigma <- function(xm, mu) {
 ![](https://github.com/IHappyPlant/RProjects/blob/master/img/plugin_vs_ldf4.PNG)  
 
 Вывод: для случая, когда матрицы ковариации классов равны, и Plug-in и ЛДФ показывают схожие результаты, что неудивительно, т. к. ЛДФ - частный случай Plug-in. Тем не менее, ЛДФ значительно проще в реализации, и требует меньше вычислительной мощности, благодаря более простой формуле. Также, в случае, когда классы накладываются друг на друга, Plug-in "ломается", а ЛДФ - нет.
+
+### EM-алгоритм  
+Класс не во всех случаях можно описать одним распределением. Иногда класс представляет собой смесь распределений. В этом случае функция правдоподобия *p(x)* вычисляется по формуле: ![](http://latex.codecogs.com/gif.latex?p%28x%29%20%3D%20%5Csum_%7Bj%3D1%7D%5Ek%20w_jp_j%28x%29%2C%20%5Csum_%7Bj%3D1%7D%5Ekw_j%20%3D%201%2C%20w_j%5Cgeq0), где *j* - номер компоненты смеси, ![](http://latex.codecogs.com/gif.latex?w_j) - её апостериорная вероятность. Задача разделения смеси состоит в том, чтобы имея обучающую выборку, выделить из неё компоненты смеси, и оценить вектор параметров ![](http://latex.codecogs.com/gif.latex?%5CTheta%20%3D%20%28w_1%2C%5Cdots%2Cw_k%2C%5Ctheta_1%2C%5Cdots%2C%5Ctheta_k%29)  
+Для разделения смеси применяется *EM-алгоритм*. Он состоит из двух больших шагов: E (expectation) - шага и M (maximization) - шага. В начале алгоритма задаётся начальное приближение ![](http://latex.codecogs.com/gif.latex?%5CTheta), затем на E - шаге по ![](http://latex.codecogs.com/gif.latex?%5CTheta) вычисляется вектор скрытых переменных *G*. На M - шаге по текущим значениям *G* и ![](http://latex.codecogs.com/gif.latex?%5CTheta) вычисляется новое значение ![](http://latex.codecogs.com/gif.latex?%5CTheta). Процесс повторяется, пока *G* и ![](http://latex.codecogs.com/gif.latex?%5CTheta) не стабилизируются.  
+#### E - шаг  
+На E - шаге вычисляются ![](http://latex.codecogs.com/gif.latex?g_%7Bij%7D%20%5Cin%20G) - апостериорные вероятности того, что объект ![](http://latex.codecogs.com/gif.latex?x_i) принадлежит *j-й* компоненте смеси.  
+![](http://latex.codecogs.com/gif.latex?g_%7Bij%7D%20%3D%20%5Cfrac%7Bw_jp_j%28x_i%29%7D%7B%5Csum_%7Bs%3D1%7D%5Ekw_sp_s%28x_i%29%7D%3B%20i%3D1%2C%5Cdots%2Cm%3B%20j%20%3D%201%2C%5Cdots%2Ck)  
+#### M - шаг
+На M - шаге решается задача максимизации правдоподобия: ![](http://latex.codecogs.com/gif.latex?Q%28%5CTheta%29%3D%5Cln%5Cprod_%7Bi%3D1%7D%5Emp%28x_i%29%3D%5Csum_%7Bi%3D1%7D%5Em%5Cln%5Csum_%7Bj%3D1%7D%5Ekw_jp_j%28x_i%29%5Crightarrow%20%5Cmax_%7B%5CTheta%7D%3B%20%5Csum_%7Bj%3D1%7D%5Ekw_j%20%3D%201)  
+Путём некоторых сложных преобразований она разбивается на *k* подзадач (по количеству компонент):  
+![](http://latex.codecogs.com/gif.latex?w_j%20%3D%20%5Cfrac%7B1%7D%7Bm%7D%5Csum_%7Bi%3D1%7D%5Emg_%7Bij%7D%3B%20j%20%3D%201%2C%5Cdots%2Cm)  
+![](http://latex.codecogs.com/gif.latex?%5Ctheta_j%3D%5Carg%5Cmax%5Csum_%7Bi%3D1%7D%5Emg_%7Bij%7D%5Cln%5Cphi%28x_i%2C%20%5Ctheta%29%3B%20j%3D1%2C%5Cdots%2Ck)  
+
+Рассмотрим смесь многомерных гауссовских распределений. Для простоты предположим, что все компоненты имеют диагональные матрицы ковариации. Тогда функция правдоподобия объекта *x* для класса *y* вычисляется по формуле:  
+![](http://latex.codecogs.com/gif.latex?p_y%28x%29%3D%5Csum_%7Bj%3D1%7D%5E%7Bk_y%7Dw_%7Byj%7Dp_%7Byj%7D%28x%29%3B%20p_%7Byj%7D%20%3D%20N%28x%3B%20%5Cmu_%7Byj%7D%3B%20%5CSigma_%7Byj%7D%29)  
+![](http://latex.codecogs.com/gif.latex?N%28x%3B%20%5Cmu_%7Byj%7D%3B%20%5CSigma_%7Byj%7D%29%3D%5Cprod_%7Bd%3D1%7D%5En%5Cfrac%7B1%7D%7B%5Csigma_%7Bjd%7D%5Csqrt%7B2%5Cpi%7D%7D%5Cexp%28-%5Cfrac%7B1%7D%7B2%7D%28%5Cfrac%7B%5Cxi_%7Bd%7D-%5Cmu_%7Bjd%7D%7D%7B%5Csigma_%7Bjd%7D%7D%29%5E2%29%2C%20x%20%3D%20%28%5Cxi_1%2C%5Cdots%2C%5Cxi_n%29)  
+И решение задачи максимизации правдоподобия на M - шаге имеет следующий вид:  
+![](http://latex.codecogs.com/gif.latex?%5Cmu_%7Bjd%7D%3D%5Cfrac%7B1%7D%7Bmw_j%7D%5Csum_%7Bi%3D1%7D%5Emg_%7Bij%7Dx_%7Bid%7D)  
+![](http://latex.codecogs.com/gif.latex?%5Csigma%5E2_%7Bjd%7D%20%3D%20%5Cfrac%7B1%7D%7Bmw_j%7D%5Csum_%7Bi%3D1%7D%5Emg_%7Bij%7D%28x_%7Bid%7D-%5Cmu_%7Bjd%7D%29%5E2%2C%20d%20%3D%201%2C%5Cdots%2Cn)   
+
+#### EM - алгоритм с фиксированным числом компонент:  
+Вход: ![](http://latex.codecogs.com/gif.latex?%28X%5El%2C%20k%2C%20%5CTheta%2C%20%5Cdelta%29) - обучающая выборка, число компонент смеси, начальное приближение вектора параметров, параметр критерия останова
+Выход: ![](http://latex.codecogs.com/gif.latex?%28w_j%2C%20%5Ctheta_j%29_%7Bj%3D1%7D%5Ek) - оптимизированный вектор параметров  
+1. E - шаг: для всех ![](http://latex.codecogs.com/gif.latex?i%20%3D%201%2C%5Cdots%2Cm%3B%20j%20%3D%201%2C%5Cdots%2Ck):  
+ ![](http://latex.codecogs.com/gif.latex?g%5E%7Bprev%7D_%7Bij%7D%20%3D%20g_%7Bij%7D); ![](http://latex.codecogs.com/gif.latex?g_%7Bij%7D%20%3D%20%5Cfrac%7Bw_jp_j%28x_i%29%7D%7B%5Csum_%7Bs%3D1%7D%5Ekw_sp_s%28x_i%29%7D%3B%20i%3D1%2C%5Cdots%2Cm%3B%20j%20%3D%201%2C%5Cdots%2Ck)
+ 2. M - шаг: для всех *j = 1,...,k* вычислить оптимальные мат. ожидание и дисперсию, пересчитать ![](http://latex.codecogs.com/gif.latex?w_j) (формулы выше).
+ 3. Если (![](http://latex.codecogs.com/gif.latex?%5Cmax%28%7Cg%5E%7Bprev%7D_%7Bij%7D-g_%7Bij%7D%7C%20%3E%20%5Cdelta%29)), то перейти на п. 1
+ 4. Вернуть ![](http://latex.codecogs.com/gif.latex?%28w_j%2C%20%5Ctheta_j%29_%7Bj%3D1%7D%5Ek)  
+   
+ Если количество компонент неизвестно, то применяется модификация: EM - алгоритм с последовательным добавлением компонент.  
+ #### EM - алгоритм с последовательным добавлением компонент
+ Вход: ![](http://latex.codecogs.com/gif.latex?%28X%5El%2C%20m_0%2C%20R%2C%20%5Cdelta%29) - обучающая выборка, минимальное число объектов для восстановления компоненты, параметр разброса правдоподобия объектов, параметр критерия останова  
+ Выход: ![](http://latex.codecogs.com/gif.latex?%28w_j%2C%20%5Ctheta_j%29_%7Bj%3D1%7D%5Ek) - оптимизированный вектор параметров  
+ 1. Старт: восстановить мат ожидание и дисперсию по всей выборке, ![](http://latex.codecogs.com/gif.latex?w_1%20%3D%201%3B%20k%20%3D%201)  
+ 2. Выделить объекты с низким правдоподобием: ![](http://latex.codecogs.com/gif.latex?U%20%3D%20%5C%7Bx_i%5Cin%20X%5El%7Cp%28x_i%29%3C%5Cmax%20%28p%28x%29%20R%29%5C%7D%3B%200%20%5Cleq%20R%20%5Cleq%201)  
+ 3. Если ![](http://latex.codecogs.com/gif.latex?%28%7CU%7C%20%3C%20m_0%29), то переход к п. 6
+ 4. *k := k + 1*. Добавим новую компоненту, и вычислим начальное приближение для неё: восстановим мат. ожидание и матрицу ковариации для *U* и пересчитаем ![](http://latex.codecogs.com/gif.latex?w_j)  
+ ![](http://latex.codecogs.com/gif.latex?w_k%20%3D%20%5Cfrac%7B%7CU%7C%7D%7Bm%7D%3B%5C%20w_j%20%3D%20w_j%281-w_k%29%2C%20%5C%20j%3D1%2C%5Cdots%2Ck-1) 
+ ![](http://latex.codecogs.com/gif.latex?%5Ctheta_k%20%3D%20%28%5Cmu_j%2C%20%5CSigma_j%29)  
+ 5. EM ![](http://latex.codecogs.com/gif.latex?%28X%5El%2C%20k%2C%20%5CTheta%2C%20%5Cdelta%29)  
+ 6. Вернуть ![](http://latex.codecogs.com/gif.latex?%28w_j%2C%20%5Ctheta_j%29_%7Bj%3D1%7D%5Ek)  
+
+Программная реализация вышеприведённых алгоритмов:  
+````r
+EM_seq <- function(xl, m0, r, delta) {
+  # EM - алгоритм с последовательным добавлением компонент
+  l <- nrow(xl)
+  objects <- xl[,-ncol(xl)]
+  mu <- matrix(get_mu(objects), 1, 2)
+  sigma <- get_sigma(objects, mu)
+  theta <- cbind(sigma, t(mu))
+  k <- 1
+  w <- 1
+  repeat {
+    phi_all <- get_phi_all(objects, theta, w)
+    phi_max <- get_max_phi(phi_all)
+    max_r <- phi_max * r
+    u <- which(phi_all < max_r)
+    u_capacity <- length(u)
+    
+    if (u_capacity < m0) break
+    
+    k <- k + 1
+    wk <- u_capacity / l
+    w <- sapply(1:length(w), function(i) w[i] * (1 - wk))
+    w <- c(w, wk)
+    mu <- matrix(get_mu(objects[u,]), 1, 2)
+    sigma <- get_sigma(objects[u,], mu)
+    theta <- rbind(theta, cbind(sigma, t(mu)))
+    theta <- EM(xl, k, theta, delta, w)
+    w <- c(theta[1:k,4]) # Уберём w из полученного theta
+    theta <- theta[,-4]
+  }
+  return (cbind(theta, as.matrix(c(w, rep(0, k)))))
+}
+
+EM <- function(xl, k, theta, delta, w) {
+  # EM - алгоритм с фиксированным числом компонент
+  l <- nrow(xl)
+  objects <- xl[,-ncol(xl)]
+  n <- ncol(objects)
+  g <- matrix(0, l, k)
+  g0 <- matrix(0, l, k)
+  repeat {
+    # E - шаг
+    for (i in 1:l)
+      for (j in 1:k) {
+        g0[i, j] <- g[i, j]
+        tmp <- sum(sapply(1:k, function(s) w[s] * phi(objects[i,], theta[(2*s-1):(2*s), 3], theta[(2*s-1):(2*s), (1:2)])))
+        tmp1 <- w[j] * phi(objects[i,], theta[(2*j-1):(2*j), 3], theta[(2*j-1):(2*j), (1:2)])
+        g[i, j] <- tmp1 / tmp 
+      }
+    # M - шаг
+    for (j in 1:k) {
+      w[j] <- sum(g[,j]) / l
+      mu <- sapply(1:n, function(i) sum(g[,j] * objects[,i]) / (l * w[j])) # Оптимальное мат ожидание
+      sigma <- matrix(0, 2, 2)
+      sigma[1,1] <- sum(g[,j] * (objects[,1] - mu[1])^2) / (l * w[j]) # Оптимальная матрица ковариации (диагональная)
+      sigma[2,2] <- sum(g[,j] * (objects[,2] - mu[2])^2) / (l * w[j])
+      theta[(2*j-1),] <- c(sigma[1,], mu[1])
+      theta[(2*j),] <- c(sigma[2,], mu[2])
+    }
+    if (to_stop(g, g0) <= delta) break
+  }
+  return (cbind(theta, as.matrix(c(w, rep(0, k)))))
+}
+````  
+Для построения разделяющей поверхности между классами будем использовать сеть радиальных базисных функций. Пусть классы представляют собой смесь нормальных распределений с диагональными матрицами ковариации. Тогда функция правдоподобия записывается в виде: ![](http://latex.codecogs.com/gif.latex?p_j%28x%29%3DN_j%5Cexp%28-%5Cfrac%7B1%7D%7B2%7D%5Crho%5E2_j%28x%2C%20%5Cmu_j%29%29%3B%5C%20N_j%20%3D%20%282%5Cpi%29%5E%7B-%5Cfrac%7Bn%7D%7B2%7D%7D%28%5Csigma_%7Bj1%7D%2C%5Cdots%2C%5Csigma_%7Bjn%7D%29%5E%7B-1%7D), где *N* - нормировочный множитель,  
+![](http://latex.codecogs.com/gif.latex?%5Crho%5E2%28u%2C%20v%29%20%3D%20%5Csum_%7Bd%3D1%7D%5En%5Csigma%5E%7B-2%7D_%7Bjd%7D%7Cu_d-v_d%7C%5E2%3B%5C%20u%3D%28u_1%2C%5Cdots%2Cu_n%29%3B%5C%20v%20%3D%20%28v_1%2C%5Cdots%2Cv_n%29) - взвешенная евклидова метрика  
+В данном случае плотность распределения означает расстояние от объекта *x* до центра *j-й* компоненты (до ![](http://latex.codecogs.com/gif.latex?%5Cmu_j)). Т. к. функции зависят от расстояния между *x* и фиксированными точками пространства, их называют *радиальными*.
+Алгоритм классификации имеет вид: ![](http://latex.codecogs.com/gif.latex?a%28x%29%20%3D%20%5Carg%5Cmax_%7By%5Cin%20Y%7D%5Clambda_yP_y%5Csum_%7Bj%3D1%7D%5E%7Bk_y%7Dw_%7Byj%7Dp_%7Byj%7D%28x%29)  
+Алгоритм состоит из трёх этапов: на первом вычисляются функции правдоподобия для всех компонент всех классов. На втором происходит умножение каждой функции правдоподобия на вероятность своей компоненты ![](http://latex.codecogs.com/gif.latex?w_%7Byj%7D) и суммирование по классам. На третьем этапе происходит домножение полученных сумм на соответствующие ![](http://latex.codecogs.com/gif.latex?P_y) и ![](http://latex.codecogs.com/gif.latex?%5Clambda_y), сравнение полученных выражений и возврат ![](http://latex.codecogs.com/gif.latex?%5Carg%5Cmax_%7By%20%5Cin%20Y%7D)  
+Примеры работы алгоритма:  
+
 
 ## Линейные алгоритмы классификации
 Рассмотрим задачу классификации с множеством объектов ![](http://latex.codecogs.com/gif.latex?X%3D%5Cmathbb%7BR%7D%5En) и множеством ответов *Y = {-1, +1}*.  
