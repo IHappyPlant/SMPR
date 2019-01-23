@@ -8,7 +8,7 @@ ui <- fluidPage(
     sidebarPanel(
       fluidRow(
         column(12, "Параметры алгоритма", style = "color: black; text-align: center; font-size: 24px"),
-        column(6, sliderInput("r", "R", 0.1, 1, 0.3, 0.1)), column(6, selectInput("delta", "delta", c(1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10), 1e-10)),
+        column(6, sliderInput("r", "R", 0.1, 1, 0.3, 0.1)), column(6, selectInput("delta", "delta", c(1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10), 1e-6)),
         column(12, "Класс Red", style = "color: red; text-align: center; font-size: 24px"),
         column(12, sliderInput("n_comp_1", "Количество компонент", 3, 5, 1, 1)),
         column(12, sliderInput("n_el_1", "Количество объектов в каждой компоненте", 50, 100, 50, 10)),
@@ -54,7 +54,7 @@ generate_xl <- function(n, n_comp, mu, sigma1, sigma2, step) {
 
 
 
-phi <- function(x, mu, sigma) prod(sapply(1:length(x), function(i) (1 / (sqrt(sigma[i,i]) * sqrt(2 * pi)) * exp(-0.5 * ((x[i] - mu[i]) / sqrt(sigma[i,i]))^2))))
+phi <- function(x, mu, sigma) prod(sapply(1:length(x), function(i) ((1 / (sqrt(sigma[i,i]) * sqrt(2 * pi))) * exp(-0.5 * ((x[i] - mu[i]) / sqrt(sigma[i,i]))^2))))
 get_mu <- function(xl) colMeans(xl)
 get_sigma <- function(xl, mu) {
   sum <- 0
@@ -102,7 +102,8 @@ EM_seq <- function(xl, m0, r, delta) {
   k <- 1
   w <- 1
   print(theta)
-  repeat {
+  max_iter <- 7 # максимум компонент, чтобы не зацикливался
+  for (iter in 1:max_iter) {
     phi_all <- get_phi_all(objects, theta, w)
     phi_max <- get_max_phi(phi_all)
     max_r <- phi_max * r
@@ -142,7 +143,8 @@ EM <- function(xl, k, theta, delta, w) {
   n <- ncol(objects)
   g <- matrix(0, l, k)
   g0 <- matrix(0, l, k)
-  repeat {
+  max_iter <- 100 # максимум итераций, чтобы не зацикливался
+  for (iter in 1:max_iter) {
     # E - шаг
     for (i in 1:l)
       for (j in 1:k) {
@@ -151,6 +153,8 @@ EM <- function(xl, k, theta, delta, w) {
         tmp1 <- w[j] * phi(objects[i,], theta[(2*j-1):(2*j), 3], theta[(2*j-1):(2*j), (1:2)])
         g[i, j] <- tmp1 / tmp 
       }
+    # Жуткий костыль: если в последнем столбце все нули (почему то иногда плотность становится нулевой), тогда вернём, как было раньше
+    if (sum(g[,k]) < 1e-50) g[,k] = g0[,k]
     # M - шаг
     for (j in 1:k) {
       w[j] <- sum(g[,j]) / l
@@ -170,9 +174,8 @@ solve_the_problem <- function(xl, r = 0.3, delta = 1e-8, n) {
   l <- nrow(xl)
   first_class <- xl[which(xl[,3] == 1),]
   second_class <- xl[which(xl[,3] == 2),]
-  print(first_class)
-  theta1 <- EM_seq(first_class, n[1], r, delta)
-  theta2 <- EM_seq(second_class, n[2], r, delta)
+  theta1 <- EM_seq(first_class, round(nrow(first_class) / 3), r, delta)
+  theta2 <- EM_seq(second_class, round(nrow(second_class) / 3), r, delta)
   k1 <- nrow(theta1) / 2
   k2 <- nrow(theta2) / 2
   w1 <- c(theta1[,4])

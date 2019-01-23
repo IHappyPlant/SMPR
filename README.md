@@ -498,7 +498,8 @@ EM_seq <- function(xl, m0, r, delta) {
   theta <- cbind(sigma, t(mu))
   k <- 1
   w <- 1
-  repeat {
+  max_iter <- 7 # максимум компонент, чтобы не зацикливался
+  for (iter in 1:max_iter) {
     phi_all <- get_phi_all(objects, theta, w)
     phi_max <- get_max_phi(phi_all)
     max_r <- phi_max * r
@@ -528,7 +529,8 @@ EM <- function(xl, k, theta, delta, w) {
   n <- ncol(objects)
   g <- matrix(0, l, k)
   g0 <- matrix(0, l, k)
-  repeat {
+  max_iter <- 100 # максимум итераций, чтобы не зацикливался
+  for (iter in 1:max_iter) {
     # E - шаг
     for (i in 1:l)
       for (j in 1:k) {
@@ -537,6 +539,8 @@ EM <- function(xl, k, theta, delta, w) {
         tmp1 <- w[j] * phi(objects[i,], theta[(2*j-1):(2*j), 3], theta[(2*j-1):(2*j), (1:2)])
         g[i, j] <- tmp1 / tmp 
       }
+    # Жуткий костыль: если в последнем столбце все нули (почему то иногда плотность становится нулевой), тогда вернём, как было раньше
+    if (sum(g[,k]) < 1e-50) g[,k] = g0[,k]
     # M - шаг
     for (j in 1:k) {
       w[j] <- sum(g[,j]) / l

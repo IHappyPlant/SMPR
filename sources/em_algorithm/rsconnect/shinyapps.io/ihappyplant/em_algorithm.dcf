@@ -5,6 +5,6 @@ account: ihappyplant
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 659829
-bundleId: 1830237
+bundleId: 1831622
 url: https://ihappyplant.shinyapps.io/em_algorithm/
-when: 1548194065.40144
+when: 1548248446.57767
