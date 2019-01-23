@@ -501,8 +501,7 @@ EM_seq <- function(xl, m0, r, delta) {
   max_iter <- 7 # максимум компонент, чтобы не зацикливался
   for (iter in 1:max_iter) {
     phi_all <- get_phi_all(objects, theta, w)
-    phi_max <- get_max_phi(phi_all)
-    max_r <- phi_max * r
+    max_r <- max(phi_all) * r
     u <- which(phi_all < max_r)
     u_capacity <- length(u)
     

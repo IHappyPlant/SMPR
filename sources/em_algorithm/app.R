@@ -35,12 +35,10 @@ generate_xl <- function(n, n_comp, mu, sigma1, sigma2, step) {
   xl <- c()
   mu_res <- mu[1,]
   stp <- step[1,]
-  # print(mu_res)
   for (i in 1:n_comp[1]) {
     xl <- rbind(xl, cbind(mvrnorm(n[1], mu_res, sigma1), 1))
     mu_res <- mu_res + (-1)^i * stp
     stp <- stp + step[1,]
-    # print(mu_res)
   }
   mu_res <- mu[2,]
   stp <- step[2,]
@@ -65,7 +63,6 @@ get_sigma <- function(xl, mu) {
   sum / (nrow(xl) - 1)
 }
 
-get_max_phi <- function(phi_all) max(phi_all)
 get_phi_all <- function(objects, theta, w) {
   phi_all <- c()
   k <- nrow(theta) / 2
@@ -101,12 +98,11 @@ EM_seq <- function(xl, m0, r, delta) {
   theta <- cbind(sigma, t(mu))
   k <- 1
   w <- 1
-  print(theta)
+  # print(theta)
   max_iter <- 7 # максимум компонент, чтобы не зацикливался
   for (iter in 1:max_iter) {
     phi_all <- get_phi_all(objects, theta, w)
-    phi_max <- get_max_phi(phi_all)
-    max_r <- phi_max * r
+    max_r <- max(phi_all) * r
     u <- which(phi_all < max_r)
     u_capacity <- length(u)
     
@@ -114,7 +110,7 @@ EM_seq <- function(xl, m0, r, delta) {
     
     k <- k + 1
     wk <- u_capacity / l
-    print(u_capacity)
+    # print(u_capacity)
     w <- sapply(1:length(w), function(i) w[i] * (1 - wk))
     w <- c(w, wk)
     mu <- matrix(get_mu(objects[u,]), 1, 2)
@@ -123,9 +119,9 @@ EM_seq <- function(xl, m0, r, delta) {
     theta <- EM(xl, k, theta, delta, w)
     w <- c(theta[1:k,4]) # Уберём w из полученного theta
     theta <- theta[,-4]
-    print(k)
-    print(theta)
-    print(w)
+    # print(k)
+    # print(theta)
+    # print(w)
   }
   return (cbind(theta, as.matrix(c(w, rep(0, k)))))
 }
