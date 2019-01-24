@@ -466,9 +466,9 @@ get_sigma <- function(xm, mu) {
 ![](http://latex.codecogs.com/gif.latex?%5Csigma%5E2_%7Bjd%7D%20%3D%20%5Cfrac%7B1%7D%7Bmw_j%7D%5Csum_%7Bi%3D1%7D%5Emg_%7Bij%7D%28x_%7Bid%7D-%5Cmu_%7Bjd%7D%29%5E2%2C%20d%20%3D%201%2C%5Cdots%2Cn)   
 
 #### EM - алгоритм с фиксированным числом компонент:  
-Вход: ![](http://latex.codecogs.com/gif.latex?%28X%5El%2C%20k%2C%20%5CTheta%2C%20%5Cdelta%29) - обучающая выборка, число компонент смеси, начальное приближение вектора параметров, параметр критерия останова
+Вход: ![](http://latex.codecogs.com/gif.latex?%28X%5El%2C%20k%2C%20%5CTheta%2C%20%5Cdelta%29) - обучающая выборка, число компонент смеси, начальное приближение вектора параметров, параметр критерия останова  
 Выход: ![](http://latex.codecogs.com/gif.latex?%28w_j%2C%20%5Ctheta_j%29_%7Bj%3D1%7D%5Ek) - оптимизированный вектор параметров  
-1. E - шаг: для всех ![](http://latex.codecogs.com/gif.latex?i%20%3D%201%2C%5Cdots%2Cm%3B%20j%20%3D%201%2C%5Cdots%2Ck):  
+ 1. E - шаг: для всех ![](http://latex.codecogs.com/gif.latex?i%20%3D%201%2C%5Cdots%2Cm%3B%20j%20%3D%201%2C%5Cdots%2Ck):  
  ![](http://latex.codecogs.com/gif.latex?g%5E%7Bprev%7D_%7Bij%7D%20%3D%20g_%7Bij%7D); ![](http://latex.codecogs.com/gif.latex?g_%7Bij%7D%20%3D%20%5Cfrac%7Bw_jp_j%28x_i%29%7D%7B%5Csum_%7Bs%3D1%7D%5Ekw_sp_s%28x_i%29%7D%3B%20i%3D1%2C%5Cdots%2Cm%3B%20j%20%3D%201%2C%5Cdots%2Ck)
  2. M - шаг: для всех *j = 1,...,k* вычислить оптимальные мат. ожидание и дисперсию, пересчитать ![](http://latex.codecogs.com/gif.latex?w_j) (формулы выше).
  3. Если (![](http://latex.codecogs.com/gif.latex?%5Cmax%28%7Cg%5E%7Bprev%7D_%7Bij%7D-g_%7Bij%7D%7C%20%3E%20%5Cdelta%29)), то перейти на п. 1
