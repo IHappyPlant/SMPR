@@ -8,7 +8,7 @@ ui <- fluidPage(
     sidebarPanel(
       fluidRow(
         column(12, "Параметры алгоритма", style = "color: black; text-align: center; font-size: 24px"),
-        column(6, sliderInput("r", "R", 0.1, 1, 0.3, 0.1)), column(6, selectInput("delta", "delta", c(1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10), 1e-6)),
+        column(6, sliderInput("r", "R", 0.2, 0.5, 0.3, 0.1)), column(6, selectInput("delta", "delta", c(1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10), 1e-6)),
         column(12, "Класс Red", style = "color: red; text-align: center; font-size: 24px"),
         column(12, sliderInput("n_comp_1", "Количество компонент", 3, 5, 1, 1)),
         column(12, sliderInput("n_el_1", "Количество объектов в каждой компоненте", 50, 100, 50, 10)),
@@ -132,6 +132,16 @@ to_stop <- function(g, g0) {
   return (g[max_ind[1], max_ind[2]])
 }
 
+check_fix_nan <- function(g0, g) {
+  l <- nrow(g)
+  n <- ncol(g)
+  new_g <- g
+  for (i in 1:l)
+    for (j in 1:n)
+      if (is.nan(g[i,j])) new_g[i,j] <- g0[i,j]
+  return (new_g)
+}
+
 EM <- function(xl, k, theta, delta, w) {
   # EM - алгоритм с фиксированным числом компонент
   l <- nrow(xl)
@@ -149,8 +159,8 @@ EM <- function(xl, k, theta, delta, w) {
         tmp1 <- w[j] * phi(objects[i,], theta[(2*j-1):(2*j), 3], theta[(2*j-1):(2*j), (1:2)])
         g[i, j] <- tmp1 / tmp 
       }
-    # Жуткий костыль: если в последнем столбце все нули (почему то иногда плотность становится нулевой), тогда вернём, как было раньше
-    if (sum(g[,k]) < 1e-50) g[,k] = g0[,k]
+    # Жуткий костыль: если в какой-то ячейке nan (почему то иногда плотность становится нулевой и tmp становится нулём), тогда запишем в неё результат из g0
+    g <- check_fix_nan(g0, g)
     # M - шаг
     for (j in 1:k) {
       w[j] <- sum(g[,j]) / l
