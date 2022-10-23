@@ -3,7 +3,7 @@ import abc
 
 from metrics import euclidean
 from weight_calculators import (
-    WeightsByOrderCalculator,
+    UniformWeightsCalculator, WeightsByOrderCalculator,
     KernelWeightsCalculator
 )
 
@@ -16,13 +16,17 @@ class MetricClassifier:
         calculate metric between dataset objects.
     """
 
-    def __init__(self, metric=euclidean, **kwargs):
+    def __init__(self, metric=euclidean,
+                 weights_calculator=UniformWeightsCalculator(), **kwargs):
         self._metric = metric
+        self._weights_calculator = weights_calculator
         self._dataset = None
 
     def get_params(self):
         return {
-            "metric": self._metric
+            "metric": self._metric,
+            "weights_calculator": self._weights_calculator,
+            "dataset": self._dataset
         }
 
     def fit(self, dataset):
@@ -63,16 +67,13 @@ class KWNN(MetricClassifier):
 
     def __init__(self, n=1, weights_calculator=WeightsByOrderCalculator(),
                  **kwargs):
-        super().__init__(**kwargs)
-        self._dataset = None
+        super().__init__(weights_calculator=weights_calculator, **kwargs)
         self._n = n
-        self._weights_calculator = weights_calculator
 
     def get_params(self):
         return {
             **super().get_params(),
-            "n": self._n,
-            "weights_calculator": self._weights_calculator
+            "n": self._n
         }
 
     def _sort_objects_by_dist(self, objects, obj):
@@ -89,14 +90,13 @@ class KWNN(MetricClassifier):
         sorted_objects = self._sort_objects_by_dist(self._dataset, obj)
         n_objects = sorted_objects[:self._n]
         weights = self._weights_calculator.get_weights(n_objects)
-        classes_weights = ({
+        cls_weights = ({
             "class": o.classcode,
             "weight": w
         } for o, w in zip(n_objects, weights))
         result_table = {
-            cls: sum(
-                (cw["weight"] for cw in classes_weights if cw["class"] == cls))
-            for cls in set((obj.classcode for obj in n_objects))
+            cl: sum((cw["weight"] for cw in cls_weights if cw["class"] == cl))
+            for cl in set((obj.classcode for obj in n_objects))
         }
         return max(result_table, key=result_table.get)
 
@@ -105,19 +105,26 @@ class ParzenWindow(MetricClassifier):
 
     def __init__(self, h, weights_calculator=KernelWeightsCalculator(),
                  **kwargs):
-        super().__init__(**kwargs)
-        self._dataset = None
+        super().__init__(weights_calculator=weights_calculator, **kwargs)
         self._h = h
-        self._weights_calculator = weights_calculator
+
+    def get_params(self):
+        return {
+            **super().get_params(),
+            "h": self._h
+        }
 
     def predict(self, obj):
+        distances = (self._metric(obj, other) for other in self._dataset)
+        weights = self._weights_calculator.get_weights(
+            (d / self._h for d in distances))
+        cls_weights = ({
+            "class": o.classcode,
+            "weight": w
+        } for o, w in zip(self._dataset, weights))
         res_table = {
-            cls: 0 for cls in set((obj.classcode for obj in self._dataset))
+            cl: sum((cw["weight"] for cw in cls_weights if cw["class"] == cl))
+            for cl in set((obj.classcode for obj in self._dataset))
         }
-        for data_obj in self._dataset:
-            dist = self._metric(obj, data_obj)
-            r = dist / self._h
-            res_table[data_obj.classcode] = \
-                self._weights_calculator.get_weight(r)
         max_weight = max(res_table.values())
         return max(res_table, key=res_table.get) if max_weight > 0 else None

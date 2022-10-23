@@ -20,15 +20,14 @@ class DataWeightsCalculator:
         """
         pass
 
-    def get_weights(self, dataset):
+    def get_weights(self, data):
         """
         Get weight for each dataset item.
 
-        :type dataset: list[base.DataObject]|tuple[base.DataObject]|
-            numpy.ndarray[base.DataObject]
+        :type data: list|tuple|numpy.ndarray|typing.Generator
         :rtype: typing.Generator[float]
         """
-        return (self.get_weight(obj) for obj in dataset)
+        return (self.get_weight(obj) for obj in data)
 
 
 class UniformWeightsCalculator(DataWeightsCalculator):
