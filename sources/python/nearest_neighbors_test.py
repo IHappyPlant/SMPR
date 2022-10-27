@@ -1,13 +1,13 @@
 from copy import deepcopy
 
 import numpy as np
-import tqdm
 from matplotlib import pyplot as plt
 from sklearn.datasets import load_iris
 
-from base import DataObject
-from cross_validation import LeaveOneOut
 from metric_classifiers import KWNN
+from testing_utils import (
+    estimate_models, prepare_data, prepare_iris
+)
 from weight_calculators import (
     UniformWeightsCalculator,
     WeightsByOrderCalculator
@@ -26,37 +26,37 @@ COLORS = {
 }
 
 
-def prepare_iris(dataset):
-    return [DataObject(d[2:], t) for d, t in
-            zip(dataset.data, dataset.target)]
-
-
-def prepare_data():
-    return [DataObject([x, y])
-            for y in np.arange(0, 3, 0.1) for x in np.arange(0, 7, 0.1)]
-
-
-def fit_knn(models, xl):
-    loo = LeaveOneOut()
-    qualities = [loo.estimate(m, xl)
-                 for m in tqdm.tqdm(models, desc="Models evaluation: ")]
-    return {
-        "qualities": qualities,
-        "best": models[np.argmin(qualities)]
-    }
-
-
 def display_data(xl, classified):
-    plt.scatter([i[0] for i in classified],
-                [i[1] for i in classified],
-                facecolors="none",
-                marker="s",
-                edgecolor=[COLORS.get(CLASS_NUM_STR_MAP.get(i.classcode))
-                           for i in classified])
-    plt.scatter([i[0] for i in xl],
-                [i[1] for i in xl],
-                c=[COLORS.get(CLASS_NUM_STR_MAP.get(i.classcode)) for i in xl],
-                edgecolor="black")
+    _, plots = plt.subplots(1, 2)
+    main_plot, cv_plot = plots[0][0], plots[0][1]
+
+    main_plot.set_title(classified.get("title"))
+    c_data = classified["data"]
+    main_plot.scatter(
+        [i[0] for i in c_data],
+        [i[1] for i in c_data],
+        facecolors="none",
+        marker="s",
+        edgecolor=[COLORS.get(CLASS_NUM_STR_MAP.get(i.classcode))
+                   for i in c_data])
+    main_plot.scatter(
+        [i[0] for i in xl],
+        [i[1] for i in xl],
+        c=[COLORS.get(CLASS_NUM_STR_MAP.get(i.classcode)) for i in xl],
+        edgecolor="none")
+
+    if classified.get("cv_data"):
+        k_values = np.arange(0,
+                             len(classified["cv_data"]["qualities"])) + 1
+        best_k = classified["cv_data"]["best_k"]
+        best_q = classified["cv_data"].get("best_q")
+        best_quality = classified["cv_data"]["qualities"][best_k - 1]
+        cv_plot.plot(k_values, classified["cv_data"]["qualities"])
+        loo_text = f"k = {best_k}\nerrors = {best_quality}"
+        if best_q:
+            loo_text += f"\nq = {best_q}"
+        cv_plot.scatter([best_k], [best_quality], c=["red"])
+        cv_plot.text(best_k, best_quality, loo_text)
     plt.show()
 
 
@@ -77,20 +77,26 @@ def display_comparison_data(xl, *classified):
                      c=[COLORS.get(CLASS_NUM_STR_MAP.get(i.classcode)) for i in
                         xl],
                      edgecolor="none")
+        plot.set_xlabel("Petal length")
+        plot.set_ylabel("Petal width")
 
         if classified_.get("cv_data"):
+            cv_data = classified_["cv_data"]
+            qualities = cv_data["qualities"]
             loo_plot = plots_row[1]
-            k_values = np.arange(0,
-                                 len(classified_["cv_data"]["qualities"])) + 1
-            best_k = classified_["cv_data"]["best_k"]
-            best_q = classified_["cv_data"].get("best_q")
-            best_quality = classified_["cv_data"]["qualities"][best_k - 1]
-            loo_plot.plot(k_values, classified_["cv_data"]["qualities"])
+            iters = np.arange(0, len(qualities)) + 1
+            best_k = cv_data["best_k"]
+            best_q = cv_data.get("best_q")
+            best_quality = min(qualities)
+            loo_plot.plot(iters, qualities)
             loo_text = f"k = {best_k}\nerrors = {best_quality}"
             if best_q:
                 loo_text += f"\nq = {best_q}"
-            loo_plot.scatter([best_k], [best_quality], c=["red"])
-            loo_plot.text(best_k, best_quality, loo_text)
+            loo_plot.scatter([np.argmin(qualities) + 1], [best_quality],
+                             c=["red"])
+            loo_plot.text(np.argmin(qualities) + 1, best_quality, loo_text)
+            loo_plot.set_xlabel("Iterations")
+            loo_plot.set_ylabel("Num of errors")
     plt.show()
 
 
@@ -106,7 +112,7 @@ if __name__ == '__main__':
         item.classcode = prediction
     # display_data(iris, one_nn_test)
 
-    knns = fit_knn(
+    knns = estimate_models(
         [KWNN(n=n, weights_calculator=UniformWeightsCalculator())
          for n in range(1, len(iris) // 3)],
         iris
@@ -119,10 +125,10 @@ if __name__ == '__main__':
         item.classcode = prediction
     # display_data(iris, knn_test)
 
-    kwnns = fit_knn(
+    kwnns = estimate_models(
         [KWNN(n=n, weights_calculator=WeightsByOrderCalculator(q=q))
          for n in range(1, len(iris) // 3)
-         for q in np.arange(0.1, 1., 0.1)],
+         for q in np.linspace(0.1, 1, num=10)],
         iris
     )
     kwnn = kwnns["best"]

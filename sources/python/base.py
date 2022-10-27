@@ -1,3 +1,6 @@
+import abc
+
+
 class DataObject:
     """
     Class that represents data object from dataset.
@@ -38,3 +41,34 @@ class DataObject:
 
     def __len__(self):
         return len(self._features)
+
+
+class BasePredictor(abc.ABC):
+
+    def get_params(self):
+        return {}
+
+    @abc.abstractmethod
+    def fit(self, data):
+        """
+        :type data: list[DataObject]|tuple[DataObject]|
+            numpy.ndarray[DataObject]
+        """
+        pass
+
+    @abc.abstractmethod
+    def predict(self, data):
+        """
+        :type data: DataObject
+        """
+        pass
+
+    def fit_predict(self, data, data_object):
+        """
+        :type data: list[base.DataObject]|tuple[base.DataObject]|
+            numpy.ndarray[base.DataObject]
+        :type data_object: base.DataObject
+        :rtype: int
+        """
+        self.fit(data)
+        return self.predict(data_object)
