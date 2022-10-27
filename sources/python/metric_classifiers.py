@@ -94,7 +94,6 @@ class ParzenWindow(MetricClassifier):
         }
 
     def predict(self, data):
-        self._h = 1
         distances = (self._metric(data, other) for other in self._dataset)
         weights = (self._weights_calculator.get_weights(
             (d / self._h for d in distances)))
