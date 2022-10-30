@@ -72,3 +72,10 @@ class BasePredictor(abc.ABC):
         """
         self.fit(data)
         return self.predict(data_object)
+
+    @abc.abstractmethod
+    def predict_proba(self, data):
+        """
+        :type data: DataObject
+        """
+        pass
