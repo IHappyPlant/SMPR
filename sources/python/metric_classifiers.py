@@ -1,7 +1,10 @@
 """This module contains metric classifiers."""
 from abc import ABC
 
+import numpy as np
+
 import base
+from cross_validation import RawEstimator
 from metrics import euclidean
 from weight_calculators import (
     KernelWeightsCalculator, UniformWeightsCalculator, WeightsByOrderCalculator
@@ -30,7 +33,7 @@ class MetricClassifier(base.BasePredictor, ABC):
             "dataset": self._dataset
         }
 
-    def fit(self, data):
+    def fit(self, data, **kwargs):
         self._dataset = data
 
 
@@ -93,10 +96,13 @@ class ParzenWindow(MetricClassifier):
             "h": self._h
         }
 
+    def _get_weights(self, distances):
+        return self._weights_calculator.get_weights(
+            np.array(list(distances)) / self._h)
+
     def predict(self, data):
         distances = (self._metric(data, other) for other in self._dataset)
-        weights = (self._weights_calculator.get_weights(
-            (d / self._h for d in distances)))
+        weights = self._get_weights(distances)
         cls_weights = [{
             "class": o.classcode,
             "weight": w
@@ -107,3 +113,53 @@ class ParzenWindow(MetricClassifier):
         }
         max_weight = max(res_table.values())
         return max(res_table, key=res_table.get) if max_weight > 0 else None
+
+
+class PotentialFunctions(ParzenWindow):
+
+    def __init__(self, h, **kwargs):
+        super().__init__(h=h, **kwargs)
+        self._point_potentials = None
+        self._fitness_thresh = None
+        self._max_iter = None
+        self._cross_validator = None
+
+    def get_params(self):
+        return {
+            **super().get_params(),
+            "point_potentials": self._point_potentials,
+            "fitness_threshold": self._fitness_thresh,
+            "fitness_max_iterations": self._max_iter,
+            "cross_validator": self._cross_validator
+        }
+
+    @staticmethod
+    def _select_random_item(dataset):
+        random_index = np.random.randint(0, len(dataset))
+        return random_index, dataset[random_index]
+
+    def fit(self, data, **kwargs):
+        super().fit(data, **kwargs)
+        self._fitness_thresh = kwargs.get("fitness_threshold", 0)
+        self._max_iter = kwargs.get("fitness_max_iter", 5000)
+        self._cross_validator = kwargs.get("cross_validator", RawEstimator())
+        self._point_potentials = np.zeros(len(self._dataset))
+        iters_count = 0
+        error = self._fitness_thresh + 1
+        while error > self._fitness_thresh and iters_count < self._max_iter:
+            item_index, rand_item = self._select_random_item(data)
+            item_class = self.predict(rand_item)
+            self._point_potentials[item_index] += \
+                (item_class != rand_item.classcode)
+            error = self._cross_validator.estimate(self, data)
+            print(f"Iter: {iters_count}, error: {error}")
+            iters_count += 1
+        not_null = self._point_potentials > 0
+        self._dataset = [item for i, item in enumerate(self._dataset)
+                         if not_null[i]]
+        self._h = np.array(self._h)[not_null]
+        self._point_potentials = self._point_potentials[not_null]
+
+    def _get_weights(self, distances):
+        weights = super()._get_weights(distances)
+        return self._point_potentials * np.array(list(weights))

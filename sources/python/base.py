@@ -49,7 +49,7 @@ class BasePredictor(abc.ABC):
         return {}
 
     @abc.abstractmethod
-    def fit(self, data):
+    def fit(self, data, **kwargs):
         """
         :type data: list[DataObject]|tuple[DataObject]|
             numpy.ndarray[DataObject]

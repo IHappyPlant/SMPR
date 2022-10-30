@@ -28,6 +28,16 @@ class CrossValidator:
         return self.quality
 
 
+class RawEstimator(CrossValidator):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def _estimate(self, model, data):
+        self._losses = [self._loss_func(i.classcode, model.predict(i))
+                        for i in data]
+
+
 class LeaveOneOut(CrossValidator):
 
     def __init__(self, **kwargs):
